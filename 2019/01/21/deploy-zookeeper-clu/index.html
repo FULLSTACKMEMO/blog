@@ -1,0 +1,1399 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+  
+  
+  <link rel="stylesheet" href="/lib/needsharebutton/needsharebutton.css">
+
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+  <link href="https://cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.min.css" rel="stylesheet" type="text/css">
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.loli.net/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+  
+
+<link href="https://cdn.bootcss.com/font-awesome/4.6.2/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=6.1.0" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/lemon-violet.png?v=6.1.0">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/lemon-violet.png?v=6.1.0">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/lemon-violet.png?v=6.1.0">
+
+
+  <link rel="mask-icon" href="/images/lemon.svg?v=6.1.0" color="#222">
+
+
+
+
+
+
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '6.1.0',
+    sidebar: {"position":"right","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    fastclick: true,
+    lazyload: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: 'TG4QHW2JND',
+      apiKey: 'eae9b05d48b25432570a208fffefe8d6',
+      indexName: 'blog',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="对比因为3.5.x还是beat版, 所以这里简单在3.4.x和3.5.x之间进行了安全相关的对比:  3.5.0支持Jetty(The AdminServer), 以此来替代四字命令并不复用zookeeper的通信端口, 而是默认使用8080端口, 这样可以针对此端口做防火墙设置或nginx代理认证等 3.5.3添加4lw.commands.whitelist参数, 默认不做任何配置可以禁用四字命">
+<meta name="keywords" content="zookeeper,kafka,集群,DIGEST-MD5,SASL-SSL,身份认证">
+<meta property="og:type" content="article">
+<meta property="og:title" content="部署zookeeper+kafka集群并开启基于DIGEST-MD5的SASL-SSL身份认证">
+<meta property="og:url" content="http://www.fullstackmemo.com/2019/01/21/deploy-zookeeper-clu/index.html">
+<meta property="og:site_name" content="Fullstack Memo">
+<meta property="og:description" content="对比因为3.5.x还是beat版, 所以这里简单在3.4.x和3.5.x之间进行了安全相关的对比:  3.5.0支持Jetty(The AdminServer), 以此来替代四字命令并不复用zookeeper的通信端口, 而是默认使用8080端口, 这样可以针对此端口做防火墙设置或nginx代理认证等 3.5.3添加4lw.commands.whitelist参数, 默认不做任何配置可以禁用四字命">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2019-03-20T09:55:05.420Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="部署zookeeper+kafka集群并开启基于DIGEST-MD5的SASL-SSL身份认证">
+<meta name="twitter:description" content="对比因为3.5.x还是beat版, 所以这里简单在3.4.x和3.5.x之间进行了安全相关的对比:  3.5.0支持Jetty(The AdminServer), 以此来替代四字命令并不复用zookeeper的通信端口, 而是默认使用8080端口, 这样可以针对此端口做防火墙设置或nginx代理认证等 3.5.3添加4lw.commands.whitelist参数, 默认不做任何配置可以禁用四字命">
+
+
+
+  <link rel="alternate" href="/atom.xml" title="Fullstack Memo" type="application/atom+xml">
+
+
+
+
+  <link rel="canonical" href="http://www.fullstackmemo.com/2019/01/21/deploy-zookeeper-clu/">
+
+
+
+<script type="text/javascript" id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>部署zookeeper+kafka集群并开启基于DIGEST-MD5的SASL-SSL身份认证 | Fullstack Memo</title>
+  
+
+
+
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?77f5b6619b4e57a13348fafb653fda4e";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style type="text/css">
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion {
+      .logo-line-before i { left: initial; }
+      .logo-line-after i { right: initial; }
+    }
+  </style>
+</noscript>
+
+</head>
+
+<script>
+  function ishidden(odiv){
+    var vdiv = document.getElementById(odiv);
+    vdiv.style.display = (vdiv.style.display == 'none')?'block':'none';
+  }
+</script>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-right page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"> 
+
+<div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Fullstack Memo</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <h1 class="site-subtitle" itemprop="description">双引号的全栈备忘录</h1>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+          
+  <li class="menu-item menu-item-home">
+    <a href="/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+</li>
+
+      
+        
+        
+          
+  <li class="menu-item menu-item-tags">
+    <a href="/tags/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+</li>
+
+      
+        
+        
+          
+  <li class="menu-item menu-item-categories">
+    <a href="/categories/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+</li>
+
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+        </li>
+      
+    </ul>
+  
+
+  
+    
+
+    
+    
+      
+      
+    
+      
+      
+    
+      
+      
+    
+    
+
+  
+
+
+  
+
+  
+    <div class="site-search">
+      
+  
+  <div class="algolia-popup popup search-popup">
+    <div class="algolia-search">
+      <div class="algolia-search-input-icon">
+        <i class="fa fa-search"></i>
+      </div>
+      <div class="algolia-search-input" id="algolia-search-input"></div>
+    </div>
+
+    <div class="algolia-results">
+      <div id="algolia-stats"></div>
+      <div id="algolia-hits"></div>
+      <div id="algolia-pagination" class="algolia-pagination"></div>
+    </div>
+
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+  </div>
+
+
+
+
+    </div>
+  
+</nav>
+
+
+  
+
+
+
+ </div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+    <div class="reading-progress-bar"></div>
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://www.fullstackmemo.com/2019/01/21/deploy-zookeeper-clu/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="x22x22">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/lemon-violet.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Fullstack Memo">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">部署zookeeper+kafka集群并开启基于DIGEST-MD5的SASL-SSL身份认证</h2>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-01-21T13:23:09+08:00">2019-01-21</time>
+            
+
+            
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/OPS/" itemprop="url" rel="index"><span itemprop="name">运维</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="post-meta-item-icon">
+            <i class="fa fa-eye"></i>
+             阅读次数： 
+            <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>
+            </span>
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="对比"><a href="#对比" class="headerlink" title="对比"></a>对比</h2><p>因为3.5.x还是beat版, 所以这里简单在3.4.x和3.5.x之间进行了安全相关的对比:</p>
+<ol>
+<li>3.5.0支持Jetty(The AdminServer), 以此来替代四字命令并不复用zookeeper的通信端口, 而是默认使用8080端口, 这样可以针对此端口做防火墙设置或nginx代理认证等</li>
+<li>3.5.3添加4lw.commands.whitelist参数, 默认不做任何配置可以禁用四字命令, 防止匿名访问zookeeper信息</li>
+<li>3.5.0支持使用secureClientPort开启ssl端口让客户端与服务器通讯</li>
+</ol>
+<a id="more"></a>
+<h2 id="资源"><a href="#资源" class="headerlink" title="资源"></a>资源</h2><h3 id="服务器信息"><a href="#服务器信息" class="headerlink" title="服务器信息"></a>服务器信息</h3><table>
+<thead>
+<tr>
+<th>服务器ip</th>
+<th>系统版本</th>
+<th>jdk版本</th>
+<th>备注</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>10.22.0.70</td>
+<td>CentOS 7.6</td>
+<td>1.8.0_191</td>
+<td>节点1, zookeeper服务: id: 1, kafka服务: id: 0, 服务运行用户名: app</td>
+</tr>
+<tr>
+<td>10.22.0.71</td>
+<td>CentOS 7.6</td>
+<td>1.8.0_191</td>
+<td>节点2, zookeeper服务: id: 2, kafka服务: id: 1, 服务运行用户名: app</td>
+</tr>
+<tr>
+<td>10.22.0.72</td>
+<td>CentOS 7.6</td>
+<td>1.8.0_191</td>
+<td>节点3, zookeeper服务: id: 3, kafka服务: id: 2, 服务运行用户名: app</td>
+</tr>
+</tbody>
+</table>
+<h3 id="zookeeper信息"><a href="#zookeeper信息" class="headerlink" title="zookeeper信息"></a>zookeeper信息</h3><table>
+<thead>
+<tr>
+<th>目录</th>
+<th>备注</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>zookeeper版本</td>
+<td>3.5.4-beta</td>
+</tr>
+<tr>
+<td>zookeeper安装目录</td>
+<td>/data/app/zookeeper-3.5.4-beta</td>
+</tr>
+<tr>
+<td>zookeeper配置目录</td>
+<td>/data/app/zookeeper-3.5.4-beta/conf</td>
+</tr>
+<tr>
+<td>zookeeper日志目录</td>
+<td>/data/app/zookeeper-3.5.4-beta/logs</td>
+</tr>
+<tr>
+<td>zookeeper数据目录</td>
+<td>/data/app/zookeeper-3.5.4-beta/data</td>
+</tr>
+<tr>
+<td>zookeeper安装目录软连接</td>
+<td>/data/app/zookeeper</td>
+</tr>
+</tbody>
+</table>
+<h3 id="kafka信息"><a href="#kafka信息" class="headerlink" title="kafka信息"></a>kafka信息</h3><table>
+<thead>
+<tr>
+<th>目录</th>
+<th>备注</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>kafka版本</td>
+<td>2.12-2.1.0</td>
+</tr>
+<tr>
+<td>kafka安装目录</td>
+<td>/data/app/kafka_2.12-2.1.0</td>
+</tr>
+<tr>
+<td>kafka配置目录</td>
+<td>/data/app/kafka_2.12-2.1.0/config</td>
+</tr>
+<tr>
+<td>kafka日志目录</td>
+<td>/data/app/kafka_2.12-2.1.0/logs</td>
+</tr>
+<tr>
+<td>kafka安装目录软连接</td>
+<td>/data/app/kafka</td>
+</tr>
+</tbody>
+</table>
+<h2 id="生成证书"><a href="#生成证书" class="headerlink" title="生成证书"></a>生成证书</h2><ul>
+<li><p>执行节点: 在任意节点执行</p>
+</li>
+<li><p>脚本:</p>
+</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 此部分仅在节点一上执行即可</span></span><br><span class="line"><span class="comment"># 生成证书后将证书目录同时复制到其它两个节点上</span></span><br><span class="line">ssl_keys_dir=/data/app/ssl</span><br><span class="line">mkdir -p <span class="variable">$&#123;ssl_keys_dir&#125;</span></span><br><span class="line"><span class="built_in">cd</span> <span class="variable">$&#123;ssl_keys_dir&#125;</span></span><br><span class="line"><span class="comment"># 生成服务器keystore(密钥和证书)</span></span><br><span class="line">keytool -keystore server.keystore.jks -<span class="built_in">alias</span> FULLSTACKMEMO -validity 3650 -keyalg RSA -storepass testpass -keypass testpass -genkey -deststoretype pkcs12 -dname <span class="string">"C=CN,ST=GD,L=GZ,O=x22x22,OU=x22x22,CN=FULLSTACKMEMO.COM"</span></span><br><span class="line"><span class="comment"># 生成客户端keystore(密钥和证书)</span></span><br><span class="line">keytool -keystore client.keystore.jks -<span class="built_in">alias</span> FULLSTACKMEMO -validity 3650 -keyalg RSA -storepass testpass -keypass testpass -genkey -deststoretype pkcs12 -dname <span class="string">"C=CN,ST=GD,L=GZ,O=x22x22,OU=x22x22,CN=FULLSTACKMEMO.COM"</span></span><br><span class="line"><span class="comment"># 创建CA证书</span></span><br><span class="line">openssl req -new -x509 -keyout ca.key -out ca.crt -days 3650 -passout pass:testpass -subj <span class="string">"/C=CN/ST=GD/L=GZ/O=x22x22/OU=x22x22/CN=FULLSTACKMEMO.COM"</span></span><br><span class="line"><span class="comment"># 将CA证书导入到服务器truststore</span></span><br><span class="line">keytool -keystore server.truststore.jks -<span class="built_in">alias</span> FULLSTACKMEMOCARoot -import -noprompt -trustcacerts -file ca.crt -storepass testpass</span><br><span class="line"><span class="comment"># 将CA证书导入到客户端truststore</span></span><br><span class="line">keytool -keystore client.truststore.jks -<span class="built_in">alias</span> FULLSTACKMEMOCARoot -import -noprompt -trustcacerts -file ca.crt -storepass testpass</span><br><span class="line"><span class="comment"># 导出服务器证书</span></span><br><span class="line">keytool -keystore server.keystore.jks -<span class="built_in">alias</span> FULLSTACKMEMO -certreq -file cert-file -storepass testpass</span><br><span class="line">keytool -keystore client.keystore.jks -<span class="built_in">alias</span> FULLSTACKMEMO -certreq -file client-cert-file -storepass testpass</span><br><span class="line"><span class="comment"># 用CA证书给服务器证书签名</span></span><br><span class="line">openssl x509 -req -CA ca.crt -CAkey ca.key -<span class="keyword">in</span> cert-file -out cert-signed -days 365 -CAcreateserial -passin pass:testpass</span><br><span class="line">openssl x509 -req -CA ca.crt -CAkey ca.key -<span class="keyword">in</span> client-cert-file -out client-cert-signed -days 365 -CAcreateserial -passin pass:testpass</span><br><span class="line"><span class="comment"># 将CA证书导入服务器keystore</span></span><br><span class="line">keytool -keystore server.keystore.jks -<span class="built_in">alias</span> FULLSTACKMEMOCARoot -import -noprompt -trustcacerts -file ca.crt -storepass testpass</span><br><span class="line">keytool -keystore client.keystore.jks -<span class="built_in">alias</span> FULLSTACKMEMOCARoot -import -noprompt -trustcacerts -file ca.crt -storepass testpass</span><br><span class="line"><span class="comment"># 将已签名的服务器证书导入服务器keystore</span></span><br><span class="line">keytool -keystore server.keystore.jks -<span class="built_in">alias</span> FULLSTACKMEMO -import -noprompt -trustcacerts -file cert-signed -trustcacerts -storepass testpass</span><br><span class="line">keytool -keystore client.keystore.jks -<span class="built_in">alias</span> FULLSTACKMEMO -import -noprompt -trustcacerts -file client-cert-signed -trustcacerts -storepass testpass</span><br><span class="line"></span><br><span class="line"><span class="comment"># 验证ssl, 自行下面命令的过程中会提示要求输入证书秘钥的pass, 请按照提示输入pass即可.</span></span><br><span class="line"><span class="comment"># echo 'GET /HTTP/1.1' | openssl s_client -connect 127.0.0.1:2281 -tls1_2 -cert $&#123;ssl_keys_dir&#125;/ca.crt -key $&#123;ssl_keys_dir&#125;/ca.key -CAfile $&#123;ssl_keys_dir&#125;/ca.crt</span></span><br></pre></td></tr></table></figure>
+<h2 id="部署"><a href="#部署" class="headerlink" title="部署"></a>部署</h2><ul>
+<li><p>执行节点: 以下脚本每个节点都需要执行, 但是需要注意修改脚本内提示的针对不同节点的命令</p>
+</li>
+<li><p>脚本:</p>
+</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 前言</span></span><br><span class="line"><span class="comment"># 下载zookeeper, 国内加快下载速度可以使用清华大学开源镜像站或中国科学技术大学开源软件镜像站</span></span><br><span class="line"><span class="comment"># 中国科学技术大学开源软件镜像站zookeeper: http://mirrors.ustc.edu.cn/apache/zookeeper/</span></span><br><span class="line"><span class="comment"># zookeeper-3.5.4-beta: http://mirrors.ustc.edu.cn/apache/zookeeper/zookeeper-3.5.4-beta/zookeeper-3.5.4-beta.tar.gz</span></span><br><span class="line"><span class="comment"># 将zookeeper-3.5.4-beta.tar.gz下载并传送到三台服务器的/tmp下</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 设置环境变量</span></span><br><span class="line">zookeeper_install=/data/app/zookeeper</span><br><span class="line">zookeeper_version=3.5.4-beta</span><br><span class="line">ssl_keys_dir=/data/app/ssl</span><br><span class="line">run_user=app</span><br><span class="line"></span><br><span class="line"><span class="comment"># 初始化环境</span></span><br><span class="line"><span class="comment"># 安装jdk并设置jdk全局环境变量, 此步省略</span></span><br><span class="line">useradd app -d /data/app</span><br><span class="line">mkdir -p /data/app</span><br><span class="line">chown <span class="variable">$&#123;run_user&#125;</span>:<span class="variable">$&#123;run_user&#125;</span> -R /data/app</span><br><span class="line"></span><br><span class="line"><span class="comment"># 部署</span></span><br><span class="line"><span class="built_in">cd</span> /tmp</span><br><span class="line">tar zxf zookeeper-<span class="variable">$&#123;zookeeper_version&#125;</span>.tar.gz</span><br><span class="line">\mv zookeeper-<span class="variable">$&#123;zookeeper_version&#125;</span> /data/app</span><br><span class="line"><span class="built_in">cd</span> /data/app/</span><br><span class="line"><span class="comment"># 如果之前存在以及部署的zookeeper, 将其移除并按时间备份</span></span><br><span class="line">\mv -f zookeeper zookeeper.bk-$(date <span class="string">"+%Y%m%d%H%M%S"</span>)</span><br><span class="line">ln -s zookeeper-<span class="variable">$&#123;zookeeper_version&#125;</span> zookeeper</span><br><span class="line">mkdir -p <span class="variable">$&#123;zookeeper_install&#125;</span>/data</span><br><span class="line">mkdir -p <span class="variable">$&#123;zookeeper_install&#125;</span>/logs</span><br><span class="line"></span><br><span class="line">cat &gt; <span class="variable">$&#123;zookeeper_install&#125;</span>/conf/zoo.cfg&lt;&lt;EOF</span><br><span class="line"><span class="comment"># ref: https://zookeeper.apache.org/doc/r3.5.4-beta/zookeeperAdmin.html#sc_configuration</span></span><br><span class="line"><span class="comment"># 基本配置</span></span><br><span class="line">tickTime=2000</span><br><span class="line"></span><br><span class="line">dataDir=<span class="variable">$&#123;zookeeper_install&#125;</span>-<span class="variable">$&#123;zookeeper_version&#125;</span>/data</span><br><span class="line">dataLogDir=<span class="variable">$&#123;zookeeper_install&#125;</span>-<span class="variable">$&#123;zookeeper_version&#125;</span>/logs</span><br><span class="line"></span><br><span class="line"><span class="comment"># clientPortAddress=127.0.0.1</span></span><br><span class="line"><span class="comment"># secureClientPortAddress=127.0.0.1</span></span><br><span class="line"><span class="comment"># 当前的kafka不支持使用ssl方式连接zookeeper, 所有此处虽然zookeeper设置了ssl, 但是kafka依然是使用明文方式连接zookeeper</span></span><br><span class="line">clientPort=2181</span><br><span class="line">secureClientPort=2281</span><br><span class="line">initLimit=5</span><br><span class="line">syncLimit=2</span><br><span class="line">server.1=10.22.0.70:2888:3888</span><br><span class="line">server.2=10.22.0.71:2888:3888</span><br><span class="line">server.3=10.22.0.72:2888:3888</span><br><span class="line">admin.enableServer=<span class="literal">false</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 认证配置</span></span><br><span class="line">quorum.auth.enableSasl=<span class="literal">true</span></span><br><span class="line">quorum.auth.learnerRequireSasl=<span class="literal">true</span></span><br><span class="line">quorum.auth.serverRequireSasl=<span class="literal">true</span></span><br><span class="line">quorum.auth.learner.loginContext=QuorumLearner</span><br><span class="line">quorum.auth.server.loginContext=QuorumServer</span><br><span class="line"><span class="comment"># quorum.auth.kerberos.servicePrincipal=servicename/_HOST</span></span><br><span class="line">quorum.cnxn.threads.size=20</span><br><span class="line"></span><br><span class="line">authProvider.1=org.apache.zookeeper.server.auth.SASLAuthenticationProvider</span><br><span class="line"></span><br><span class="line"><span class="comment"># 如果权限认证文件丢失或认证密码忘记, 可以使用以下参数临时跳过认证</span></span><br><span class="line"><span class="comment"># 配置此选项需要对所有节点的配置文件设且重启所有节点才能生效</span></span><br><span class="line"><span class="comment"># skipACL=yes</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 四字命令加入白名单, 没有特殊需求不建议开启</span></span><br><span class="line"><span class="comment"># 4lw.commands.whitelist=*</span></span><br><span class="line"><span class="comment"># 4lw.commands.whitelist=stat, ruok, conf, isro</span></span><br><span class="line"></span><br><span class="line">EOF</span><br><span class="line"></span><br><span class="line">cat &gt; <span class="variable">$&#123;zookeeper_install&#125;</span>/conf/java.env&lt;&lt;EOF</span><br><span class="line">SERVER_JVMFLAGS=<span class="string">"</span></span><br><span class="line"><span class="string">  -Djava.security.auth.login.config=<span class="variable">$&#123;zookeeper_install&#125;</span>/conf/jass_server.conf</span></span><br><span class="line"><span class="string">  -Dzookeeper.serverCnxnFactory=org.apache.zookeeper.server.NettyServerCnxnFactory</span></span><br><span class="line"><span class="string">  -Dzookeeper.ssl.keyStore.location=<span class="variable">$&#123;ssl_keys_dir&#125;</span>/server.keystore.jks</span></span><br><span class="line"><span class="string">  -Dzookeeper.ssl.keyStore.password=testpass</span></span><br><span class="line"><span class="string">  -Dzookeeper.ssl.trustStore.location=<span class="variable">$&#123;ssl_keys_dir&#125;</span>/server.truststore.jks</span></span><br><span class="line"><span class="string">  -Dzookeeper.ssl.trustStore.password=testpass</span></span><br><span class="line"><span class="string">"</span></span><br><span class="line"><span class="comment"># CLIENT_JVMFLAGS="</span></span><br><span class="line"><span class="comment">#   -Djava.security.auth.login.config=$&#123;zookeeper_install&#125;/conf/jass_client.conf</span></span><br><span class="line"><span class="comment"># "</span></span><br><span class="line">EOF</span><br><span class="line"></span><br><span class="line">cat &gt; <span class="variable">$&#123;zookeeper_install&#125;</span>/conf/jass_server.conf&lt;&lt;EOF</span><br><span class="line">Server &#123;</span><br><span class="line">       org.apache.zookeeper.server.auth.DigestLoginModule required</span><br><span class="line">       user_super=<span class="string">"adminsecret"</span></span><br><span class="line">       user_bob=<span class="string">"bobsecret"</span>;</span><br><span class="line">&#125;;</span><br><span class="line">Client &#123;</span><br><span class="line">       org.apache.zookeeper.server.auth.DigestLoginModule required</span><br><span class="line">       username=<span class="string">"super"</span></span><br><span class="line">       password=<span class="string">"adminsecret"</span>;</span><br><span class="line">&#125;;</span><br><span class="line">QuorumServer &#123;</span><br><span class="line">       org.apache.zookeeper.server.auth.DigestLoginModule required</span><br><span class="line">       user_quorum=<span class="string">"quorumsecret"</span>;</span><br><span class="line">&#125;;</span><br><span class="line">QuorumLearner &#123;</span><br><span class="line">       org.apache.zookeeper.server.auth.DigestLoginModule required</span><br><span class="line">       username=<span class="string">"quorum"</span></span><br><span class="line">       password=<span class="string">"quorumsecret"</span>;</span><br><span class="line">&#125;;</span><br><span class="line">EOF</span><br><span class="line"></span><br><span class="line">cat &gt; <span class="variable">$&#123;zookeeper_install&#125;</span>/conf/jass_client.conf&lt;&lt;EOF</span><br><span class="line">Client &#123;</span><br><span class="line">       org.apache.zookeeper.server.auth.DigestLoginModule required</span><br><span class="line">       username=<span class="string">"super"</span></span><br><span class="line">       password=<span class="string">"adminsecret"</span>;</span><br><span class="line">&#125;;</span><br><span class="line">EOF</span><br><span class="line"></span><br><span class="line"><span class="comment"># 此处需要注意, 不同节点请跟换成对应的节点id</span></span><br><span class="line"><span class="comment"># 不同的节点执行下面不同的命令</span></span><br><span class="line"><span class="built_in">echo</span> 1 &gt; <span class="variable">$&#123;zookeeper_install&#125;</span>/data/myid</span><br><span class="line"><span class="comment"># echo 2 &gt; $&#123;zookeeper_install&#125;/data/myid</span></span><br><span class="line"><span class="comment"># echo 3 &gt; $&#123;zookeeper_install&#125;/data/myid</span></span><br><span class="line"></span><br><span class="line">chown <span class="variable">$&#123;run_user&#125;</span>:<span class="variable">$&#123;run_user&#125;</span> -R <span class="variable">$&#123;zookeeper_install&#125;</span>-<span class="variable">$&#123;zookeeper_version&#125;</span></span><br><span class="line"></span><br><span class="line">cat &gt; /usr/lib/systemd/system/zookeeper.service&lt;&lt;EOF</span><br><span class="line">[Unit]</span><br><span class="line">Description=ZooKeeper Service</span><br><span class="line">Documentation=http://zookeeper.apache.org</span><br><span class="line">Requires=network.target</span><br><span class="line">After=network.target</span><br><span class="line"></span><br><span class="line">[Service]</span><br><span class="line">Type=forking</span><br><span class="line">User=<span class="variable">$&#123;run_user&#125;</span></span><br><span class="line">Group=<span class="variable">$&#123;run_user&#125;</span></span><br><span class="line">ExecStart=<span class="variable">$&#123;zookeeper_install&#125;</span>/bin/zkServer.sh start <span class="variable">$&#123;zookeeper_install&#125;</span>/conf/zoo.cfg</span><br><span class="line">ExecStop=<span class="variable">$&#123;zookeeper_install&#125;</span>/bin/zkServer.sh stop <span class="variable">$&#123;zookeeper_install&#125;</span>/conf/zoo.cfg</span><br><span class="line">ExecReload=<span class="variable">$&#123;zookeeper_install&#125;</span>/bin/zkServer.sh restart <span class="variable">$&#123;zookeeper_install&#125;</span>/conf/zoo.cfg</span><br><span class="line">WorkingDirectory=<span class="variable">$&#123;zookeeper_install&#125;</span></span><br><span class="line"></span><br><span class="line">[Install]</span><br><span class="line">WantedBy=default.target</span><br><span class="line">EOF</span><br><span class="line"></span><br><span class="line">systemctl daemon-reload</span><br><span class="line">systemctl <span class="built_in">enable</span> zookeeper</span><br><span class="line">systemctl restart zookeeper</span><br><span class="line">systemctl status zookeeper</span><br><span class="line"></span><br><span class="line"><span class="comment"># 相关运维命令</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看zookeeper状态</span></span><br><span class="line"><span class="comment"># 此命令需要在三个节点上运行才能查看三个节点的信息</span></span><br><span class="line"><span class="comment"># 可以从返回新的Mode信息看出当前zookeeper是主还是备</span></span><br><span class="line"><span class="variable">$&#123;zookeeper_install&#125;</span>/bin/zkServer.sh status</span><br><span class="line"><span class="comment"># 返回信息:</span></span><br><span class="line"><span class="comment"># ZooKeeper JMX enabled by default</span></span><br><span class="line"><span class="comment"># Using config: /data/app/zookeeper/bin/../conf/zoo.cfg</span></span><br><span class="line"><span class="comment"># Mode: followe</span></span><br><span class="line"><span class="comment"># 或者</span></span><br><span class="line"><span class="comment"># ZooKeeper JMX enabled by default</span></span><br><span class="line"><span class="comment"># Using config: /data/app/zookeeper/bin/../conf/zoo.cfg</span></span><br><span class="line"><span class="comment"># Mode: leader</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 设置客户端环境变量</span></span><br><span class="line"><span class="built_in">export</span> CLIENT_JVMFLAGS=<span class="string">"</span></span><br><span class="line"><span class="string">  -Djava.security.auth.login.config=<span class="variable">$&#123;zookeeper_install&#125;</span>/conf/jass_client.conf</span></span><br><span class="line"><span class="string">  -Dzookeeper.clientCnxnSocket=org.apache.zookeeper.ClientCnxnSocketNetty</span></span><br><span class="line"><span class="string">  -Dzookeeper.client.secure=true</span></span><br><span class="line"><span class="string">  -Dzookeeper.ssl.keyStore.location=<span class="variable">$&#123;ssl_keys_dir&#125;</span>/client.keystore.jks</span></span><br><span class="line"><span class="string">  -Dzookeeper.ssl.keyStore.password=testpass</span></span><br><span class="line"><span class="string">  -Dzookeeper.ssl.trustStore.location=<span class="variable">$&#123;ssl_keys_dir&#125;</span>/client.truststore.jks</span></span><br><span class="line"><span class="string">  -Dzookeeper.ssl.trustStore.password=testpass</span></span><br><span class="line"><span class="string">"</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 设置关键位置的acl, 使用sasl验证</span></span><br><span class="line"><span class="variable">$&#123;zookeeper_install&#125;</span>/bin/zkCli.sh -server 10.22.0.70:2281 setAcl / sasl:super:cdrwa</span><br><span class="line"><span class="variable">$&#123;zookeeper_install&#125;</span>/bin/zkCli.sh -server 10.22.0.70:2281 setAcl /zookeeper sasl:super:cdrwa</span><br><span class="line"></span><br><span class="line"><span class="variable">$&#123;zookeeper_install&#125;</span>/bin/zkCli.sh -server 10.22.0.70:2281 getAcl / | grep -E <span class="string">"cdrwa|super"</span></span><br><span class="line"><span class="variable">$&#123;zookeeper_install&#125;</span>/bin/zkCli.sh -server 10.22.0.70:2281 getAcl /zookeeper | grep -E <span class="string">"cdrwa|super"</span></span><br></pre></td></tr></table></figure>
+<h2 id="部署kafka"><a href="#部署kafka" class="headerlink" title="部署kafka"></a>部署kafka</h2><ul>
+<li><p>执行节点: 以下脚本每个节点都需要执行, 但是需要注意修改脚本内提示的针对不同节点的命令</p>
+</li>
+<li><p>脚本:</p>
+</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"></span><br><span class="line">kafka_install=/data/app/kafka</span><br><span class="line">kafka_version=2.12-2.1.0</span><br><span class="line">ssl_keys_dir=/data/app/ssl</span><br><span class="line">run_user=app</span><br><span class="line"></span><br><span class="line"><span class="comment"># 初始化环境</span></span><br><span class="line"><span class="comment"># 安装jdk并设置jdk全局环境变量, 此步省略</span></span><br><span class="line">useradd app -d /data/app</span><br><span class="line">mkdir -p /data/app</span><br><span class="line">chown <span class="variable">$&#123;run_user&#125;</span>:<span class="variable">$&#123;run_user&#125;</span> -R /data/app</span><br><span class="line"></span><br><span class="line"><span class="comment"># 部署</span></span><br><span class="line"><span class="built_in">cd</span> /tmp</span><br><span class="line">tar zxf kafka_<span class="variable">$&#123;kafka_version&#125;</span>.tgz</span><br><span class="line">\mv kafka_<span class="variable">$&#123;kafka_version&#125;</span> /data/app</span><br><span class="line"><span class="built_in">cd</span> /data/app/</span><br><span class="line"><span class="comment"># 如果之前存在以及部署的kafka, 将其移除并按时间备份</span></span><br><span class="line">\mv -f kafka kafka.bk-$(date <span class="string">"+%Y%m%d%H%M%S"</span>)</span><br><span class="line">ln -s kafka_<span class="variable">$&#123;kafka_version&#125;</span> kafka</span><br><span class="line">mkdir -p <span class="variable">$&#123;kafka_install&#125;</span>/logs</span><br><span class="line"></span><br><span class="line"><span class="comment"># 请根据不同节点运行下面的broker.id替换命令</span></span><br><span class="line"><span class="comment"># 节点1</span></span><br><span class="line"><span class="comment"># sed -i 's/^broker.id=.*/broker.id=0/g' $&#123;kafka_install&#125;/config/server.properties</span></span><br><span class="line"><span class="comment"># 节点2</span></span><br><span class="line"><span class="comment"># sed -i 's/^broker.id=.*/broker.id=1/g' $&#123;kafka_install&#125;/config/server.properties</span></span><br><span class="line"><span class="comment"># 节点3</span></span><br><span class="line">sed -i <span class="string">'s/^broker.id=.*/broker.id=2/g'</span> <span class="variable">$&#123;kafka_install&#125;</span>/config/server.properties</span><br><span class="line"></span><br><span class="line">sed -i <span class="string">'</span></span><br><span class="line"><span class="string">s@#listeners=.*@listeners=SASL_PLAINTEXT://:9092,SASL_SSL://:9093@g;</span></span><br><span class="line"><span class="string">s@log.dirs=.*@#log.dirs=$&#123;kafka_install&#125;/logs@g;</span></span><br><span class="line"><span class="string">s@zookeeper.connect=.*@zookeeper.connect=10.22.0.70:2181,10.22.0.71:2181,10.22.0.72:2181@g</span></span><br><span class="line"><span class="string">'</span> <span class="variable">$&#123;kafka_install&#125;</span>/config/server.properties</span><br><span class="line"></span><br><span class="line">cat &gt;&gt; <span class="variable">$&#123;kafka_install&#125;</span>/config/server.properties &lt;&lt; EOF</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># ssl和认证相关设置</span></span><br><span class="line">ssl.keystore.location=<span class="variable">$&#123;ssl_keys_dir&#125;</span>/server.keystore.jks</span><br><span class="line">ssl.keystore.password=testpass</span><br><span class="line">ssl.key.password=testpass</span><br><span class="line">ssl.truststore.location=<span class="variable">$&#123;ssl_keys_dir&#125;</span>/server.truststore.jks</span><br><span class="line">ssl.truststore.password=testpass</span><br><span class="line">security.inter.broker.protocol=SASL_SSL</span><br><span class="line">sasl.mechanism.inter.broker.protocol=PLAIN</span><br><span class="line">sasl.enabled.mechanisms=PLAIN</span><br><span class="line">ssl.client.auth=required</span><br><span class="line"><span class="comment"># 如果想要HTTPS严格验证主机名, 需要在生成证书时加上-ext SAN=DNS:&#123;FQDN&#125;</span></span><br><span class="line"><span class="comment"># ssl.endpoint.identification.algorithm=HTTPS</span></span><br><span class="line">ssl.endpoint.identification.algorithm=</span><br><span class="line">EOF</span><br><span class="line"></span><br><span class="line">cat &gt; <span class="variable">$&#123;kafka_install&#125;</span>/config/jass.conf&lt;&lt;EOF</span><br><span class="line">KafkaServer &#123;</span><br><span class="line">    org.apache.kafka.common.security.plain.PlainLoginModule required</span><br><span class="line">    username=<span class="string">"admin"</span></span><br><span class="line">    password=<span class="string">"admin-secret"</span></span><br><span class="line">    user_admin=<span class="string">"admin-secret"</span></span><br><span class="line">    user_alice=<span class="string">"alice-secret"</span>;</span><br><span class="line">&#125;;</span><br><span class="line">Client &#123;</span><br><span class="line">       org.apache.kafka.common.security.plain.PlainLoginModule required</span><br><span class="line">       username=<span class="string">"super"</span></span><br><span class="line">       password=<span class="string">"adminsecret"</span>;</span><br><span class="line">&#125;;</span><br><span class="line">EOF</span><br><span class="line"></span><br><span class="line">cat&gt; /usr/lib/systemd/system/kafka.service&lt;&lt;EOF</span><br><span class="line">[Unit]</span><br><span class="line">Description=Confluent Kafka Broker</span><br><span class="line">After=network.target network-online.target remote-fs.target zookeeper.service</span><br><span class="line"></span><br><span class="line">[Service]</span><br><span class="line">Type=forking</span><br><span class="line">User=<span class="variable">$&#123;run_user&#125;</span></span><br><span class="line">Group=<span class="variable">$&#123;run_user&#125;</span></span><br><span class="line"><span class="comment"># Uncomment the following line to enable authentication for the broker</span></span><br><span class="line">Environment=<span class="string">"KAFKA_OPTS=-Djava.security.auth.login.config=<span class="variable">$&#123;kafka_install&#125;</span>/config/jass.conf"</span></span><br><span class="line">ExecStart=<span class="variable">$&#123;kafka_install&#125;</span>/bin/kafka-server-start.sh -daemon <span class="variable">$&#123;kafka_install&#125;</span>/config/server.properties</span><br><span class="line">ExecStop=<span class="variable">$&#123;kafka_install&#125;</span>/bin/kafka-server-stop.sh</span><br><span class="line">SuccessExitStatus=143</span><br><span class="line"></span><br><span class="line">[Install]</span><br><span class="line">WantedBy=multi-user.target</span><br><span class="line">EOF</span><br><span class="line"></span><br><span class="line">chown <span class="variable">$&#123;run_user&#125;</span>:<span class="variable">$&#123;run_user&#125;</span> -R <span class="variable">$&#123;kafka_install&#125;</span>_<span class="variable">$&#123;kafka_version&#125;</span></span><br><span class="line"></span><br><span class="line">systemctl daemon-reload</span><br><span class="line">systemctl <span class="built_in">enable</span> kafka</span><br><span class="line">systemctl restart kafka</span><br><span class="line">systemctl status kafka</span><br></pre></td></tr></table></figure>
+<h2 id="kafka测试"><a href="#kafka测试" class="headerlink" title="kafka测试"></a>kafka测试</h2><ul>
+<li><p>执行节点: 在任意节点测试即可</p>
+</li>
+<li><p>脚本:</p>
+</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"></span><br><span class="line">kafka_install=/data/app/kafka</span><br><span class="line">kafka_version=2.12-2.1.0</span><br><span class="line">ssl_keys_dir=/data/app/ssl</span><br><span class="line">run_user=app</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">cat &gt;&gt;<span class="variable">$&#123;kafka_install&#125;</span>/config/producer.properties&lt;&lt;EOF</span><br><span class="line"></span><br><span class="line"><span class="comment"># ssl和认证相关设置</span></span><br><span class="line">sasl.jaas.config=org.apache.kafka.common.security.plain.PlainLoginModule required \</span><br><span class="line">    username=<span class="string">"alice"</span> \</span><br><span class="line">    password=<span class="string">"alice-secret"</span>;</span><br><span class="line">security.protocol=SASL_SSL</span><br><span class="line">sasl.mechanism=PLAIN</span><br><span class="line">ssl.truststore.location=<span class="variable">$&#123;ssl_keys_dir&#125;</span>/client.truststore.jks</span><br><span class="line">ssl.truststore.password=testpass</span><br><span class="line">ssl.keystore.location=<span class="variable">$&#123;ssl_keys_dir&#125;</span>/client.keystore.jks</span><br><span class="line">ssl.keystore.password=testpass</span><br><span class="line">ssl.key.password=testpass</span><br><span class="line"></span><br><span class="line"><span class="comment"># 如果想要HTTPS严格验证主机名, 需要在生成证书时加上-ext SAN=DNS:&#123;FQDN&#125;</span></span><br><span class="line"><span class="comment"># ssl.endpoint.identification.algorithm=HTTPS</span></span><br><span class="line">ssl.endpoint.identification.algorithm=</span><br><span class="line">EOF</span><br><span class="line"></span><br><span class="line">cat &gt;&gt;<span class="variable">$&#123;kafka_install&#125;</span>/config/consumer.properties&lt;&lt;EOF</span><br><span class="line"></span><br><span class="line"><span class="comment"># ssl和认证相关设置</span></span><br><span class="line">sasl.jaas.config=org.apache.kafka.common.security.plain.PlainLoginModule required username=<span class="string">"alice"</span> password=<span class="string">"alice-secret"</span>;</span><br><span class="line">security.protocol=SASL_SSL</span><br><span class="line">sasl.mechanism=PLAIN</span><br><span class="line">ssl.truststore.location=<span class="variable">$&#123;ssl_keys_dir&#125;</span>/client.truststore.jks</span><br><span class="line">ssl.truststore.password=testpass</span><br><span class="line">ssl.keystore.location=<span class="variable">$&#123;ssl_keys_dir&#125;</span>/client.keystore.jks</span><br><span class="line">ssl.keystore.password=testpass</span><br><span class="line">ssl.key.password=testpass</span><br><span class="line"></span><br><span class="line"><span class="comment"># 如果想要HTTPS严格验证主机名, 需要在生成证书时加上-ext SAN=DNS:&#123;FQDN&#125;</span></span><br><span class="line"><span class="comment"># ssl.endpoint.identification.algorithm=HTTPS</span></span><br><span class="line">ssl.endpoint.identification.algorithm=</span><br><span class="line">EOF</span><br><span class="line"></span><br><span class="line"><span class="comment"># KAFKA_HEAP_OPTS="-Xms512m -Xmx1g"</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 开启两个shell窗口分别执行以下两个命令:</span></span><br><span class="line"><span class="comment"># 输入命令后可以在此窗口敲打任何信息并回车, 在消费者窗口即可收到此窗口敲打的信息</span></span><br><span class="line"><span class="comment"># 开启数据提供者命令:</span></span><br><span class="line"><span class="variable">$&#123;kafka_install&#125;</span>/bin/kafka-console-producer.sh --broker-list 10.22.0.70:9093,10.22.0.71:9093,10.22.0.72:9093 --topic <span class="built_in">test</span> --producer.config <span class="variable">$&#123;kafka_install&#125;</span>/config/producer.properties</span><br><span class="line"><span class="comment"># 开启数据消费者命令:</span></span><br><span class="line"><span class="variable">$&#123;kafka_install&#125;</span>/bin/kafka-console-consumer.sh --bootstrap-server 10.22.0.70:9093,10.22.0.71:9093,10.22.0.72:9093 --topic <span class="built_in">test</span> --consumer.config <span class="variable">$&#123;kafka_install&#125;</span>/config/consumer.properties</span><br></pre></td></tr></table></figure>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p><a href="https://zookeeper.apache.org/doc/r3.4.12/zookeeperAdmin.html" target="_blank" rel="noopener">ZooKeeper Administrator’s Guide</a><br><a href="https://cwiki.apache.org/confluence/display/ZOOKEEPER/Server-Server+mutual+authentication" target="_blank" rel="noopener">Server-Server mutual authentication</a><br><a href="https://cwiki.apache.org/confluence/display/ZOOKEEPER/Client-Server+mutual+authentication" target="_blank" rel="noopener">Client-Server mutual authentication</a><br><a href="https://kafka.apache.org/documentation/#security_ssl" target="_blank" rel="noopener">Kafka 2.1 Documentation: Encryption and Authentication using SSL</a><br><a href="https://kafka.apache.org/documentation/#security_sasl_plain" target="_blank" rel="noopener">Kafka 2.1 Documentation: Authentication using SASL/PLAIN</a><br><a href="https://wso2.com/library/tutorials/2014/05/enabling-sasl-authentication-between-wso2-message-broker-and-zookeeper-cluster/" target="_blank" rel="noopener">Enabling SASL Authentication between WSO2 Message Broker and Zookeeper Cluster</a><br><a href="http://memaddr.com/zookeeper-and-sasl/" target="_blank" rel="noopener">Zookeeper and SASL</a><br><a href="https://docs.confluent.io/current/" target="_blank" rel="noopener">confluent documentation</a><br><a href="https://www.jianshu.com/p/da0c80b4e3fa" target="_blank" rel="noopener">Kafka集群的安装部署和实践应用</a><br><a href="https://www.cnblogs.com/wxisme/p/5196302.html" target="_blank" rel="noopener">Kafka集群部署</a><br><a href="https://www.jianshu.com/p/147ca2533aff" target="_blank" rel="noopener">Zookeeper权限管理之坑</a><br><a href="https://blog.csdn.net/qianshangding0708/article/details/50067483" target="_blank" rel="noopener">Zookeeper配置文件（全）</a><br><a href="https://www.cnblogs.com/EasonJim/p/7488834.html" target="_blank" rel="noopener">ZooKeeper的配置文件优化性能（转）</a><br><a href="http://ju.outofmemory.cn/entry/128857" target="_blank" rel="noopener">Zookeeper配置Kerberos认证</a><br><a href="http://orchome.com/553" target="_blank" rel="noopener">kafka SASL验证</a><br><a href="https://www.jianshu.com/p/241a1e16d110" target="_blank" rel="noopener">kafka和zk的集群安装和ssl通信</a><br><a href="http://blog.51cto.com/aiilive/1686132" target="_blank" rel="noopener">使用ZooKeeper ACL特性进行znode控制</a><br><a href="http://www.nosqlnotes.com/technotes/zookeeper-acl/" target="_blank" rel="noopener">ZooKeeper安全认证机制：ZNode ACL</a><br><a href="http://www.nosqlnotes.com/technotes/zookeeper-ssl/" target="_blank" rel="noopener">ZooKeeper安全认证机制：SSL</a><br><a href="http://www.nosqlnotes.com/technotes/zookeeper-ssl/" target="_blank" rel="noopener">ZooKeeper安全认证机制：SSL</a><br><a href="http://blog.51cto.com/zero01/2106801" target="_blank" rel="noopener">zookeeper权限acl与四字命令</a></p>
+
+      
+    </div>
+
+    
+      
+
+
+    
+
+    
+    
+    
+
+    
+
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>x22x22</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://www.fullstackmemo.com/2019/01/21/deploy-zookeeper-clu/" title="部署zookeeper+kafka集群并开启基于DIGEST-MD5的SASL-SSL身份认证">http://www.fullstackmemo.com/2019/01/21/deploy-zookeeper-clu/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="external nofollow" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明出处！</li>
+</ul>
+
+      </div>
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/zookeeper/" rel="tag"># zookeeper</a>
+          
+            <a href="/tags/kafka/" rel="tag"># kafka</a>
+          
+            <a href="/tags/集群/" rel="tag"># 集群</a>
+          
+            <a href="/tags/DIGEST-MD5/" rel="tag"># DIGEST-MD5</a>
+          
+            <a href="/tags/SASL-SSL/" rel="tag"># SASL-SSL</a>
+          
+            <a href="/tags/身份认证/" rel="tag"># 身份认证</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/01/14/deploy-ssl-es-docker/" rel="next" title="通过Docker部署Elasticsearch时开启SSL/TLS加密通讯">
+                <i class="fa fa-chevron-left"></i> 通过Docker部署Elasticsearch时开启SSL/TLS加密通讯
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/03/20/react-mobx-note/" rel="prev" title="React中使用Mobx笔记">
+                React中使用Mobx笔记 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+  
+    <div class="comments" id="comments">
+      
+        <div onclick="showGitment()" id="gitment-display-button">显示 Gitment 评论</div>
+        <div id="gitment-container" style="display:none"></div>
+      
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/images/lemon-violet.png" alt="x22x22">
+            
+              <p class="site-author-name" itemprop="name">x22x22</p>
+              <p class="site-description motion-element" itemprop="description">与开发相关的东西乱谈</p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives">
+                
+                    <span class="site-state-item-count">17</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  <a href="/categories/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">6</span>
+                    <span class="site-state-item-name">分类</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">77</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+            <div class="feed-link motion-element">
+              <a href="/atom.xml" rel="alternate">
+                <i class="fa fa-rss"></i>
+                RSS
+              </a>
+            </div>
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  <a href="https://github.com/fullstackmemo" target="_blank" title="GitHub" rel="external nofollow"><i class="fa fa-fw fa-github"></i></a>
+                  
+                </span>
+              
+                <span class="links-of-author-item">
+                  <a href="mailto:fullstackmemo@outlook.com" target="_blank" title="E-Mail" rel="external nofollow"><i class="fa fa-fw fa-envelope"></i></a>
+                  
+                </span>
+              
+                <span class="links-of-author-item">
+                  <a href="https://twitter.com/fullstackmemo" target="_blank" title="Twitter" rel="external nofollow"><i class="fa fa-fw fa-twitter"></i></a>
+                  
+                </span>
+              
+                <span class="links-of-author-item">
+                  <a href="https://www.facebook.com/fullstackmemo" target="_blank" title="FB Page" rel="external nofollow"><i class="fa fa-fw fa-facebook"></i></a>
+                  
+                </span>
+              
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#对比"><span class="nav-number">1.</span> <span class="nav-text">对比</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#资源"><span class="nav-number">2.</span> <span class="nav-text">资源</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#服务器信息"><span class="nav-number">2.1.</span> <span class="nav-text">服务器信息</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#zookeeper信息"><span class="nav-number">2.2.</span> <span class="nav-text">zookeeper信息</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#kafka信息"><span class="nav-number">2.3.</span> <span class="nav-text">kafka信息</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#生成证书"><span class="nav-number">3.</span> <span class="nav-text">生成证书</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#部署"><span class="nav-number">4.</span> <span class="nav-text">部署</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#部署kafka"><span class="nav-number">5.</span> <span class="nav-text">部署kafka</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#kafka测试"><span class="nav-number">6.</span> <span class="nav-text">kafka测试</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考"><span class="nav-number">7.</span> <span class="nav-text">参考</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2018 &mdash; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate"> 
+    <i class="fa fa-x22x22"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">x22x22</span>
+
+  
+
+  
+</div>
+
+
+  
+
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" rel="external nofollow" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" rel="external nofollow" href="https://github.com/theme-next/hexo-theme-next">NexT.Mist</a> v6.1.0</div>
+
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv" title="总访客量">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+    </span>
+  
+
+  
+    <span class="site-pv" title="总访问量">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+
+        
+      </div>
+      <script>
+        window.addEventListener('message', function (e) {
+            if (e.origin !== 'https://runkit.com') return;
+            try {
+                var data = JSON.parse(e.data);
+            } catch (e) {
+                return false;
+            }
+            if (data.context !== 'iframe.resize') {
+                return false;
+            }
+            var iframe = document.querySelector('iframe[src="' + data.src + '"]');
+            if (!iframe) {
+                return false;
+            }
+            if (data.height) {
+                iframe.height = data.height;
+            }
+        });
+      </script>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+      <div id="needsharebutton-float">
+        <span class="btn">
+          <i class="fa fa-share-alt" aria-hidden="true"></i>
+        </span>
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/jquery/2.1.3/jquery.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/velocity/1.2.1/velocity.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/velocity/1.2.1/velocity.ui.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/reading_progress/reading_progress.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=6.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=6.1.0"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=6.1.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=6.1.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=6.1.0"></script>
+
+
+
+  
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+<!-- LOCAL: You can save these files to your site and update links -->
+    
+        
+        <link rel="stylesheet" href="https://jjeejj.github.io/css/gitment.css">
+        <script src="https://jjeejj.github.io/js/gitment.js"></script>
+    
+<!-- END LOCAL -->
+
+    
+
+    
+      <script type="text/javascript">
+      function renderGitment(){
+        var gitment = new Gitment({
+            id: window.location.pathname,
+            owner: 'fullstackmemo',
+            repo: 'gitment-comments',
+            
+            oauth: {
+            
+            
+                client_secret: '119cdc7c9d0cde4de212a4714b032d6b5286e317',
+            
+                client_id: 'e067397a2bce568d4556'
+            }});
+        gitment.render('gitment-container');
+      }
+
+      
+      function showGitment(){
+        document.getElementById("gitment-display-button").style.display = "none";
+        document.getElementById("gitment-container").style.display = "block";
+        renderGitment();
+      }
+      
+      </script>
+    
+
+
+
+
+
+
+  
+
+
+
+
+  
+  
+  
+    
+  
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/instantsearch.js@1/dist/instantsearch.min.css">
+
+  
+  
+    
+  
+  <script src="https://cdn.jsdelivr.net/npm/instantsearch.js@1/dist/instantsearch.js"></script>
+  
+
+  <script src="/js/src/algolia-search.js?v=6.1.0"></script>
+
+
+
+  
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+
+  
+  
+  
+  <script src="/lib/needsharebutton/needsharebutton.js"></script>
+
+  <script>
+    
+    
+      flOptions = {};
+      
+          flOptions.iconStyle = "default";
+      
+          flOptions.boxForm = "vertical";
+      
+          flOptions.position = "middleRight";
+      
+          flOptions.networks = "Weibo,Wechat,Douban,QQZone,Twitter,Facebook";
+      
+      new needShareButton('#needsharebutton-float', flOptions);
+    
+  </script>
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

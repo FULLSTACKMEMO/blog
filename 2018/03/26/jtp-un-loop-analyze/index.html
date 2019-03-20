@@ -1,0 +1,1284 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+  
+  
+  <link rel="stylesheet" href="/lib/needsharebutton/needsharebutton.css">
+
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+  <link href="https://cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.min.css" rel="stylesheet" type="text/css">
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.loli.net/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+  
+
+<link href="https://cdn.bootcss.com/font-awesome/4.6.2/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=6.1.0" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/lemon-violet.png?v=6.1.0">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/lemon-violet.png?v=6.1.0">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/lemon-violet.png?v=6.1.0">
+
+
+  <link rel="mask-icon" href="/images/lemon.svg?v=6.1.0" color="#222">
+
+
+
+
+
+
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '6.1.0',
+    sidebar: {"position":"right","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    fastclick: true,
+    lazyload: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: 'TG4QHW2JND',
+      apiKey: 'eae9b05d48b25432570a208fffefe8d6',
+      indexName: 'blog',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="前言这篇文章相当于 Chrome 插件入门, 因为这也是我第一次写 Chrome 插件. 插件项目结构">
+<meta name="keywords" content="Tempo Team Planning,jira,死循环,插件分析,Chrome 插件">
+<meta property="og:type" content="article">
+<meta property="og:title" content="JTP UnLoop 插件分析">
+<meta property="og:url" content="http://www.fullstackmemo.com/2018/03/26/jtp-un-loop-analyze/index.html">
+<meta property="og:site_name" content="Fullstack Memo">
+<meta property="og:description" content="前言这篇文章相当于 Chrome 插件入门, 因为这也是我第一次写 Chrome 插件. 插件项目结构">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2019-03-20T09:55:05.556Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="JTP UnLoop 插件分析">
+<meta name="twitter:description" content="前言这篇文章相当于 Chrome 插件入门, 因为这也是我第一次写 Chrome 插件. 插件项目结构">
+
+
+
+  <link rel="alternate" href="/atom.xml" title="Fullstack Memo" type="application/atom+xml">
+
+
+
+
+  <link rel="canonical" href="http://www.fullstackmemo.com/2018/03/26/jtp-un-loop-analyze/">
+
+
+
+<script type="text/javascript" id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>JTP UnLoop 插件分析 | Fullstack Memo</title>
+  
+
+
+
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?77f5b6619b4e57a13348fafb653fda4e";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style type="text/css">
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion {
+      .logo-line-before i { left: initial; }
+      .logo-line-after i { right: initial; }
+    }
+  </style>
+</noscript>
+
+</head>
+
+<script>
+  function ishidden(odiv){
+    var vdiv = document.getElementById(odiv);
+    vdiv.style.display = (vdiv.style.display == 'none')?'block':'none';
+  }
+</script>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-right page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"> 
+
+<div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Fullstack Memo</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <h1 class="site-subtitle" itemprop="description">双引号的全栈备忘录</h1>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+          
+  <li class="menu-item menu-item-home">
+    <a href="/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+</li>
+
+      
+        
+        
+          
+  <li class="menu-item menu-item-tags">
+    <a href="/tags/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+</li>
+
+      
+        
+        
+          
+  <li class="menu-item menu-item-categories">
+    <a href="/categories/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+</li>
+
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+        </li>
+      
+    </ul>
+  
+
+  
+    
+
+    
+    
+      
+      
+    
+      
+      
+    
+      
+      
+    
+    
+
+  
+
+
+  
+
+  
+    <div class="site-search">
+      
+  
+  <div class="algolia-popup popup search-popup">
+    <div class="algolia-search">
+      <div class="algolia-search-input-icon">
+        <i class="fa fa-search"></i>
+      </div>
+      <div class="algolia-search-input" id="algolia-search-input"></div>
+    </div>
+
+    <div class="algolia-results">
+      <div id="algolia-stats"></div>
+      <div id="algolia-hits"></div>
+      <div id="algolia-pagination" class="algolia-pagination"></div>
+    </div>
+
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+  </div>
+
+
+
+
+    </div>
+  
+</nav>
+
+
+  
+
+
+
+ </div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+    <div class="reading-progress-bar"></div>
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://www.fullstackmemo.com/2018/03/26/jtp-un-loop-analyze/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="x22x22">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/lemon-violet.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Fullstack Memo">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">JTP UnLoop 插件分析</h2>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-03-26T15:44:00+08:00">2018-03-26</time>
+            
+
+            
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Goods/" itemprop="url" rel="index"><span itemprop="name">通用</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="post-meta-item-icon">
+            <i class="fa fa-eye"></i>
+             阅读次数： 
+            <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>
+            </span>
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>这篇文章相当于 Chrome 插件入门, 因为这也是我第一次写 Chrome 插件.</p>
+<h2 id="插件项目结构"><a href="#插件项目结构" class="headerlink" title="插件项目结构"></a>插件项目结构</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">.</span><br><span class="line">|-- LICENSE</span><br><span class="line">|-- README.md</span><br><span class="line">|-- src</span><br><span class="line">|   |-- content_scripts  <span class="comment"># 自定义的脚本目录</span></span><br><span class="line">|   |   |-- content_script.js  <span class="comment"># 主自定义脚本</span></span><br><span class="line">|   |   `-- hookLoader.js  <span class="comment"># xhr拦截逻辑的实现</span></span><br><span class="line">|   |-- images</span><br><span class="line">|   |   `-- lemon-violet.png  <span class="comment"># 插件的logo</span></span><br><span class="line">|   |-- libs  <span class="comment"># 第三方js库</span></span><br><span class="line">|   |   |-- ajaxhook.min.js  <span class="comment"># xhr拦截库</span></span><br><span class="line">|   |   |-- bluebird.min.js  <span class="comment"># Promise库</span></span><br><span class="line">|   |   `-- lodash.min.js  <span class="comment"># JavaScript的数据处理工具库</span></span><br><span class="line">|   `-- manifest.json  <span class="comment"># 插件配置文件</span></span><br><span class="line">`-- ...</span><br></pre></td></tr></table></figure>
+<a id="more"></a>
+<h2 id="插件配置文件-manifest-json"><a href="#插件配置文件-manifest-json" class="headerlink" title="插件配置文件-manifest.json"></a>插件配置文件-manifest.json</h2><figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="attr">"manifest_version"</span>: <span class="number">2</span>,</span><br><span class="line">  <span class="attr">"name"</span>: <span class="string">"Jira Team Plan UnLoop"</span>,</span><br><span class="line">  <span class="attr">"version"</span>: <span class="string">"0.0.1"</span>,</span><br><span class="line">  <span class="attr">"description"</span>: <span class="string">"用于修复在jira中使用Jira Team Planning时查询项目列表时进入无线循环导致CPU使用率升高卡顿的问题."</span>,</span><br><span class="line">  <span class="attr">"permissions"</span>: [<span class="string">"http://example.com:8080/secure/TeamPlanning.jspa"</span>, <span class="string">"storage"</span>, <span class="string">"webRequest"</span>, <span class="string">"webRequestBlocking"</span>],</span><br><span class="line">  <span class="attr">"icons"</span>: &#123;</span><br><span class="line">    <span class="attr">"16"</span>: <span class="string">"images/lemon-violet.png"</span>,</span><br><span class="line">    <span class="attr">"48"</span>: <span class="string">"images/lemon-violet.png"</span>,</span><br><span class="line">    <span class="attr">"128"</span>: <span class="string">"images/lemon-violet.png"</span></span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="attr">"content_scripts"</span>: [</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="attr">"matches"</span>: [<span class="string">"&lt;all_urls&gt;"</span>],</span><br><span class="line">      <span class="attr">"js"</span>: [</span><br><span class="line">        <span class="string">"/libs/bluebird.min.js"</span>,</span><br><span class="line">        <span class="string">"/libs/lodash.min.js"</span>,</span><br><span class="line">        <span class="string">"/libs/ajaxhook.min.js"</span>,</span><br><span class="line">        <span class="string">"/content_scripts/content_script.js"</span>,</span><br><span class="line">        <span class="string">"/content_scripts/hookLoader.js"</span></span><br><span class="line">      ],</span><br><span class="line">      <span class="attr">"all_frames"</span>: <span class="literal">true</span>,</span><br><span class="line">      <span class="attr">"run_at"</span>: <span class="string">"document_end"</span></span><br><span class="line">    &#125;</span><br><span class="line">  ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>对于关键的字段做一下介绍:<br><strong>permissions</strong>: 插件所需申请的权限列表, 这里可以看到其中有个 url, 就是代表党匹配了这个 url 之后, 插件才会正常工作<br><strong>content_scripts</strong>: 这是一个数组, 每一个元素代表在规定的条件时做规定的 js 注入<br><strong>content_scripts[0].matches</strong>: 当 url 与规则匹配时, 触发这个 content_scripts 的操作内容<br><strong>content_scripts[0].js</strong>: 需要注入的 js<br><strong>content_scripts[0].all_frames</strong>: false 为在仅在页面顶部框架中操作, true 为在页面所有框架中操作<br><strong>content_scripts[0].run_at</strong>: 指定在 document 的某个状态时注入脚本, 具体看官方说明</p>
+<h2 id="主自定义脚本-content-script-js"><a href="#主自定义脚本-content-script-js" class="headerlink" title="主自定义脚本-content_script.js"></a>主自定义脚本-content_script.js</h2><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 注入来至本扩展的js</span></span><br><span class="line"><span class="keyword">const</span> scriptLoaderByExt = <span class="function"><span class="params">extJsPath</span> =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">if</span> (extJsPath) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> <span class="built_in">Promise</span>(<span class="function">(<span class="params">resolve, reject</span>) =&gt;</span> &#123;</span><br><span class="line">      <span class="keyword">if</span> (chrome.runtime.getURL) &#123;</span><br><span class="line">        <span class="keyword">const</span> theScript = <span class="built_in">document</span>.createElement(<span class="string">'script'</span>);</span><br><span class="line">        <span class="keyword">const</span> src = chrome.runtime.getURL(extJsPath);</span><br><span class="line">        <span class="built_in">console</span>.log(<span class="string">'src: '</span>, src);</span><br><span class="line">        theScript.src = src;</span><br><span class="line">        theScript.onload = <span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">          resolve(theScript);</span><br><span class="line">        &#125;;</span><br><span class="line">        theScript.onerror = <span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">          reject(<span class="string">`load <span class="subst">$&#123;src&#125;</span> failed`</span>);</span><br><span class="line">        &#125;;</span><br><span class="line">        <span class="built_in">document</span>.querySelector(<span class="string">'*'</span>).appendChild(theScript);</span><br><span class="line">      &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        reject(<span class="string">'没有可插入的脚本.'</span>);</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 注入来至互联网上的js或来至HTML脚本</span></span><br><span class="line"><span class="keyword">const</span> scriptLoaderByWeb = <span class="function">(<span class="params">&#123; src, innerHTML &#125;</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">if</span> (src) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> <span class="built_in">Promise</span>(<span class="function">(<span class="params">resolve, reject</span>) =&gt;</span> &#123;</span><br><span class="line">      <span class="keyword">const</span> theScript = <span class="built_in">document</span>.createElement(<span class="string">'script'</span>);</span><br><span class="line">      theScript.src = src;</span><br><span class="line">      theScript.onload = <span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">        resolve(theScript);</span><br><span class="line">      &#125;;</span><br><span class="line">      theScript.onerror = <span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">        reject(<span class="string">`load <span class="subst">$&#123;src&#125;</span> failed`</span>);</span><br><span class="line">      &#125;;</span><br><span class="line">      <span class="built_in">document</span>.querySelector(<span class="string">'*'</span>).appendChild(theScript);</span><br><span class="line">    &#125;);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">const</span> theScript = <span class="built_in">document</span>.createElement(<span class="string">'script'</span>);</span><br><span class="line">  theScript.innerHTML = innerHTML;</span><br><span class="line">  <span class="built_in">document</span>.body.appendChild(theScript);</span><br><span class="line">  <span class="keyword">return</span> theScript;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 定义主函数</span></span><br><span class="line"><span class="keyword">const</span> main = <span class="keyword">async</span> () =&gt; &#123;</span><br><span class="line">  <span class="keyword">try</span> &#123;</span><br><span class="line">    <span class="comment">// 注入第三方库脚本和自定义脚本到当前页面</span></span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">'插入脚本...'</span>);</span><br><span class="line">    <span class="comment">// 注入Promise库</span></span><br><span class="line">    <span class="keyword">await</span> scriptLoaderByExt(<span class="string">'libs/bluebird.min.js'</span>);</span><br><span class="line">    <span class="comment">// 注入工具库</span></span><br><span class="line">    <span class="keyword">await</span> scriptLoaderByExt(<span class="string">'libs/lodash.min.js'</span>);</span><br><span class="line">    <span class="comment">// 注入xhr拦截库</span></span><br><span class="line">    <span class="keyword">await</span> scriptLoaderByExt(<span class="string">'libs/ajaxhook.min.js'</span>);</span><br><span class="line">    <span class="comment">// 注入自定义的主脚本, 此步理论上可以不注入</span></span><br><span class="line">    <span class="keyword">await</span> scriptLoaderByExt(<span class="string">'content_scripts/content_script.js'</span>);</span><br><span class="line">    <span class="comment">// 注入xhr拦截器逻辑函数</span></span><br><span class="line">    <span class="keyword">await</span> scriptLoaderByExt(<span class="string">'content_scripts/hookLoader.js'</span>);</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">'脚本插入完毕.'</span>);</span><br><span class="line">    <span class="comment">// 注入一段HTML内的脚本</span></span><br><span class="line">    <span class="comment">// 1. 用于初始化全局变量</span></span><br><span class="line">    <span class="comment">// 2. 用于运行刚刚注入的hookLoader.js中提供拦截器逻辑函数</span></span><br><span class="line">    scriptLoaderByWeb(&#123;</span><br><span class="line">      innerHTML: <span class="string">`</span></span><br><span class="line"><span class="string">        let blacklistUrl = [];</span></span><br><span class="line"><span class="string">        let projectCount = 0;</span></span><br><span class="line"><span class="string">        hookLoader();</span></span><br><span class="line"><span class="string">      `</span></span><br><span class="line">    &#125;);</span><br><span class="line">  &#125; <span class="keyword">catch</span> (err) &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">'err: '</span>, err);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 运行主函数</span></span><br><span class="line">main();</span><br></pre></td></tr></table></figure>
+<p>以上注释已经分析了 content_script.js 脚本的主要功能</p>
+<h2 id="xhr-拦截器逻辑函数-hookLoader-js"><a href="#xhr-拦截器逻辑函数-hookLoader-js" class="headerlink" title="xhr 拦截器逻辑函数-hookLoader.js"></a>xhr 拦截器逻辑函数-hookLoader.js</h2><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> hookLoader = <span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">  hookAjax(&#123;</span><br><span class="line">    onreadystatechange: <span class="function"><span class="keyword">function</span>(<span class="params">xhr</span>) </span>&#123;</span><br><span class="line">      <span class="comment">/** 当查询project列表的数据有返回时, 计算出当前的project总数</span></span><br><span class="line"><span class="comment">       ** project总数将用于限制黑名单对比的次数, 这样可以解释对黑名单进行对比的次数, 已减少对比黑名单产生的不必要消耗</span></span><br><span class="line"><span class="comment">       **/</span></span><br><span class="line">      <span class="keyword">if</span> (xhr.responseURL.match(<span class="string">'rest/api/2/project\\?&amp;_'</span>) &amp;&amp; xhr.response.length &gt; <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">          <span class="keyword">const</span> projectArray = <span class="built_in">JSON</span>.parse(xhr.response);</span><br><span class="line">          <span class="keyword">if</span> (projectArray.constructor === <span class="built_in">Array</span>) &#123;</span><br><span class="line">            projectCount = projectArray.length;</span><br><span class="line">          &#125;</span><br><span class="line">        &#125; <span class="keyword">catch</span> (err) &#123;</span><br><span class="line">          <span class="built_in">console</span>.log(<span class="string">'projectArray err: '</span>, err);</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;,</span><br><span class="line">    onload: <span class="function"><span class="keyword">function</span>(<span class="params">xhr</span>) </span>&#123;&#125;,</span><br><span class="line">    open: <span class="function"><span class="keyword">function</span>(<span class="params">arg, xhr</span>) </span>&#123;</span><br><span class="line">      <span class="comment">// 30秒清除一次黑名单, 防止因为黑名单原因导致后期真实想请求数据时被无辜拦截</span></span><br><span class="line">      <span class="keyword">if</span> (projectCount !== <span class="number">0</span> &amp;&amp; blacklistUrl.length &gt;= projectCount) &#123;</span><br><span class="line">        setTimeout(<span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">          <span class="keyword">if</span> (projectCount !== <span class="number">0</span>) &#123;</span><br><span class="line">            blacklistUrl = [];</span><br><span class="line">            projectCount = <span class="number">0</span>;</span><br><span class="line">          &#125;</span><br><span class="line">        &#125;, <span class="number">30000</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">const</span> url = arg[<span class="number">1</span>];</span><br><span class="line">      <span class="comment">// 匹配是否为project权限查询, 如果是且不在黑名单中则加入黑名单, 如果在黑名单中则拦截请求</span></span><br><span class="line">      <span class="keyword">const</span> blackUrl = _.indexOf(blacklistUrl, url.replace(<span class="regexp">/&amp;_=[0-9]&#123;13&#125;/</span>, <span class="string">''</span>));</span><br><span class="line">      <span class="keyword">if</span> (blackUrl &gt; <span class="number">-1</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">      &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (url.match(<span class="string">'rest/api/2/mypermissions.*projectKey='</span>)) &#123;</span><br><span class="line">          blacklistUrl.push(url.replace(<span class="regexp">/&amp;_=[0-9]&#123;13&#125;/</span>, <span class="string">''</span>));</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>以上注释已经分析了 hookLoader.js 脚本的主要功能</p>
+<h2 id="插件调试"><a href="#插件调试" class="headerlink" title="插件调试"></a>插件调试</h2><p>这里没有上网查插件调试的方法, 讲的是我最笨的调试方法, 相信网上应该有更好的调试方法.</p>
+<ol>
+<li>当 content_scripts 中的规则运行成功后, 不严格的来说, 会走 content_script.js 脚本(因为只有这个脚本里面有执行动作, 其它脚本仅是方法定义等)</li>
+<li>所以只要在 content_script.js 脚本中用 console.log 来打印数据, 就可以在 Console 中开始调试插件了</li>
+<li>如果想调试的时候查看某个对象有哪些属性和方法, 可以将这个对象赋值给 window.someObj(其中这个 someObj 仅是一个例子, 可以取任意名字)</li>
+<li>然后在 Console 中输入 window.someObj 就可以查看到这个对象的具体内容, 非常方便.</li>
+</ol>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p><a href="https://developer.chrome.com/extensions" target="_blank" rel="noopener">Chrome extensions development</a><br><a href="https://www.cnblogs.com/liuxianan/p/chrome-plugin-develop.html" target="_blank" rel="noopener">Chrome 插件(扩展)开发全攻略</a><br><a href="https://github.com/assweeecan/inject_script_extension_demo" target="_blank" rel="noopener">demo for inject_script_extension</a><br><a href="https://lodash.com/docs/" target="_blank" rel="noopener">lodash.js 官网</a><br><a href="http://www.css88.com/doc/lodash/" target="_blank" rel="noopener">lodash.js 中文网</a><br><a href="http://bluebirdjs.com/docs/getting-started.html" target="_blank" rel="noopener">bluebird.js</a><br><a href="https://github.com/wendux/Ajax-hook" target="_blank" rel="noopener">Ajax-hook</a><br><a href="/2018/03/26/jtp-loop-analyze/">Tempo Team Planning 死循环分析与解决思路</a><br><a href="/2018/03/26/jtp-un-loop-install/">Tempo Team Planning 死循环 bug 解决方案</a></p>
+
+      
+    </div>
+
+    
+      
+
+
+    
+
+    
+    
+    
+
+    
+
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>x22x22</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://www.fullstackmemo.com/2018/03/26/jtp-un-loop-analyze/" title="JTP UnLoop 插件分析">http://www.fullstackmemo.com/2018/03/26/jtp-un-loop-analyze/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="external nofollow" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明出处！</li>
+</ul>
+
+      </div>
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Tempo-Team-Planning/" rel="tag"># Tempo Team Planning</a>
+          
+            <a href="/tags/jira/" rel="tag"># jira</a>
+          
+            <a href="/tags/死循环/" rel="tag"># 死循环</a>
+          
+            <a href="/tags/插件分析/" rel="tag"># 插件分析</a>
+          
+            <a href="/tags/Chrome-插件/" rel="tag"># Chrome 插件</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/03/26/jtp-loop-analyze/" rel="next" title="Tempo Team Planning 死循环分析与解决思路">
+                <i class="fa fa-chevron-left"></i> Tempo Team Planning 死循环分析与解决思路
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/03/27/jsx2tsx/" rel="prev" title="JavaScript到TypeScript的无痛迁移(React为例)">
+                JavaScript到TypeScript的无痛迁移(React为例) <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+  
+    <div class="comments" id="comments">
+      
+        <div onclick="showGitment()" id="gitment-display-button">显示 Gitment 评论</div>
+        <div id="gitment-container" style="display:none"></div>
+      
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/images/lemon-violet.png" alt="x22x22">
+            
+              <p class="site-author-name" itemprop="name">x22x22</p>
+              <p class="site-description motion-element" itemprop="description">与开发相关的东西乱谈</p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives">
+                
+                    <span class="site-state-item-count">17</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  <a href="/categories/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">6</span>
+                    <span class="site-state-item-name">分类</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">77</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+            <div class="feed-link motion-element">
+              <a href="/atom.xml" rel="alternate">
+                <i class="fa fa-rss"></i>
+                RSS
+              </a>
+            </div>
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  <a href="https://github.com/fullstackmemo" target="_blank" title="GitHub" rel="external nofollow"><i class="fa fa-fw fa-github"></i></a>
+                  
+                </span>
+              
+                <span class="links-of-author-item">
+                  <a href="mailto:fullstackmemo@outlook.com" target="_blank" title="E-Mail" rel="external nofollow"><i class="fa fa-fw fa-envelope"></i></a>
+                  
+                </span>
+              
+                <span class="links-of-author-item">
+                  <a href="https://twitter.com/fullstackmemo" target="_blank" title="Twitter" rel="external nofollow"><i class="fa fa-fw fa-twitter"></i></a>
+                  
+                </span>
+              
+                <span class="links-of-author-item">
+                  <a href="https://www.facebook.com/fullstackmemo" target="_blank" title="FB Page" rel="external nofollow"><i class="fa fa-fw fa-facebook"></i></a>
+                  
+                </span>
+              
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#插件项目结构"><span class="nav-number">2.</span> <span class="nav-text">插件项目结构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#插件配置文件-manifest-json"><span class="nav-number">3.</span> <span class="nav-text">插件配置文件-manifest.json</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#主自定义脚本-content-script-js"><span class="nav-number">4.</span> <span class="nav-text">主自定义脚本-content_script.js</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#xhr-拦截器逻辑函数-hookLoader-js"><span class="nav-number">5.</span> <span class="nav-text">xhr 拦截器逻辑函数-hookLoader.js</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#插件调试"><span class="nav-number">6.</span> <span class="nav-text">插件调试</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考"><span class="nav-number">7.</span> <span class="nav-text">参考</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2018 &mdash; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate"> 
+    <i class="fa fa-x22x22"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">x22x22</span>
+
+  
+
+  
+</div>
+
+
+  
+
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" rel="external nofollow" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" rel="external nofollow" href="https://github.com/theme-next/hexo-theme-next">NexT.Mist</a> v6.1.0</div>
+
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv" title="总访客量">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+    </span>
+  
+
+  
+    <span class="site-pv" title="总访问量">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+
+        
+      </div>
+      <script>
+        window.addEventListener('message', function (e) {
+            if (e.origin !== 'https://runkit.com') return;
+            try {
+                var data = JSON.parse(e.data);
+            } catch (e) {
+                return false;
+            }
+            if (data.context !== 'iframe.resize') {
+                return false;
+            }
+            var iframe = document.querySelector('iframe[src="' + data.src + '"]');
+            if (!iframe) {
+                return false;
+            }
+            if (data.height) {
+                iframe.height = data.height;
+            }
+        });
+      </script>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+      <div id="needsharebutton-float">
+        <span class="btn">
+          <i class="fa fa-share-alt" aria-hidden="true"></i>
+        </span>
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/jquery/2.1.3/jquery.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/velocity/1.2.1/velocity.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/velocity/1.2.1/velocity.ui.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/reading_progress/reading_progress.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=6.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=6.1.0"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=6.1.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=6.1.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=6.1.0"></script>
+
+
+
+  
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+<!-- LOCAL: You can save these files to your site and update links -->
+    
+        
+        <link rel="stylesheet" href="https://jjeejj.github.io/css/gitment.css">
+        <script src="https://jjeejj.github.io/js/gitment.js"></script>
+    
+<!-- END LOCAL -->
+
+    
+
+    
+      <script type="text/javascript">
+      function renderGitment(){
+        var gitment = new Gitment({
+            id: window.location.pathname,
+            owner: 'fullstackmemo',
+            repo: 'gitment-comments',
+            
+            oauth: {
+            
+            
+                client_secret: '119cdc7c9d0cde4de212a4714b032d6b5286e317',
+            
+                client_id: 'e067397a2bce568d4556'
+            }});
+        gitment.render('gitment-container');
+      }
+
+      
+      function showGitment(){
+        document.getElementById("gitment-display-button").style.display = "none";
+        document.getElementById("gitment-container").style.display = "block";
+        renderGitment();
+      }
+      
+      </script>
+    
+
+
+
+
+
+
+  
+
+
+
+
+  
+  
+  
+    
+  
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/instantsearch.js@1/dist/instantsearch.min.css">
+
+  
+  
+    
+  
+  <script src="https://cdn.jsdelivr.net/npm/instantsearch.js@1/dist/instantsearch.js"></script>
+  
+
+  <script src="/js/src/algolia-search.js?v=6.1.0"></script>
+
+
+
+  
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+
+  
+  
+  
+  <script src="/lib/needsharebutton/needsharebutton.js"></script>
+
+  <script>
+    
+    
+      flOptions = {};
+      
+          flOptions.iconStyle = "default";
+      
+          flOptions.boxForm = "vertical";
+      
+          flOptions.position = "middleRight";
+      
+          flOptions.networks = "Weibo,Wechat,Douban,QQZone,Twitter,Facebook";
+      
+      new needShareButton('#needsharebutton-float', flOptions);
+    
+  </script>
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

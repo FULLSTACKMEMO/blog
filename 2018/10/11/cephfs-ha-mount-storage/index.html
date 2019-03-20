@@ -1,0 +1,1517 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+  
+  
+  <link rel="stylesheet" href="/lib/needsharebutton/needsharebutton.css">
+
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+  <link href="https://cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.min.css" rel="stylesheet" type="text/css">
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.loli.net/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+  
+
+<link href="https://cdn.bootcss.com/font-awesome/4.6.2/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=6.1.0" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/lemon-violet.png?v=6.1.0">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/lemon-violet.png?v=6.1.0">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/lemon-violet.png?v=6.1.0">
+
+
+  <link rel="mask-icon" href="/images/lemon.svg?v=6.1.0" color="#222">
+
+
+
+
+
+
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '6.1.0',
+    sidebar: {"position":"right","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    fastclick: true,
+    lazyload: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: 'TG4QHW2JND',
+      apiKey: 'eae9b05d48b25432570a208fffefe8d6',
+      indexName: 'blog',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="服务器硬件配置及环境   项目 说明     CPU 1核   内存 1GB   硬盘 40GB   系统 CentOS 7.5   时间同步服务 chrony   ceph 13.2.2-0    节点部署图">
+<meta name="keywords" content="ceph,cephfs,storage,mount,共享存储,存储,挂载,本地存储,HA,高可用,yum">
+<meta property="og:type" content="article">
+<meta property="og:title" content="基于cephfs搭建高可用分布式存储并mount到本地">
+<meta property="og:url" content="http://www.fullstackmemo.com/2018/10/11/cephfs-ha-mount-storage/index.html">
+<meta property="og:site_name" content="Fullstack Memo">
+<meta property="og:description" content="服务器硬件配置及环境   项目 说明     CPU 1核   内存 1GB   硬盘 40GB   系统 CentOS 7.5   时间同步服务 chrony   ceph 13.2.2-0    节点部署图">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://www.fullstackmemo.com/2018/10/11/cephfs-ha-mount-storage/server-framework.png">
+<meta property="og:image" content="http://www.fullstackmemo.com/2018/10/11/cephfs-ha-mount-storage/init-node-1.png">
+<meta property="og:image" content="http://www.fullstackmemo.com/2018/10/11/cephfs-ha-mount-storage/init-admin-1.png">
+<meta property="og:image" content="http://www.fullstackmemo.com/2018/10/11/cephfs-ha-mount-storage/init-admin-2.png">
+<meta property="og:image" content="http://www.fullstackmemo.com/2018/10/11/cephfs-ha-mount-storage/deploy-ceph-1.png">
+<meta property="og:image" content="http://www.fullstackmemo.com/2018/10/11/cephfs-ha-mount-storage/deploy-ceph-2.png">
+<meta property="og:image" content="http://www.fullstackmemo.com/2018/10/11/cephfs-ha-mount-storage/mount-result-1.png">
+<meta property="og:image" content="http://www.fullstackmemo.com/2018/10/11/cephfs-ha-mount-storage/test-result-1.png">
+<meta property="og:updated_time" content="2019-03-20T09:55:05.416Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="基于cephfs搭建高可用分布式存储并mount到本地">
+<meta name="twitter:description" content="服务器硬件配置及环境   项目 说明     CPU 1核   内存 1GB   硬盘 40GB   系统 CentOS 7.5   时间同步服务 chrony   ceph 13.2.2-0    节点部署图">
+<meta name="twitter:image" content="http://www.fullstackmemo.com/2018/10/11/cephfs-ha-mount-storage/server-framework.png">
+
+
+
+  <link rel="alternate" href="/atom.xml" title="Fullstack Memo" type="application/atom+xml">
+
+
+
+
+  <link rel="canonical" href="http://www.fullstackmemo.com/2018/10/11/cephfs-ha-mount-storage/">
+
+
+
+<script type="text/javascript" id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>基于cephfs搭建高可用分布式存储并mount到本地 | Fullstack Memo</title>
+  
+
+
+
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?77f5b6619b4e57a13348fafb653fda4e";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style type="text/css">
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion {
+      .logo-line-before i { left: initial; }
+      .logo-line-after i { right: initial; }
+    }
+  </style>
+</noscript>
+
+</head>
+
+<script>
+  function ishidden(odiv){
+    var vdiv = document.getElementById(odiv);
+    vdiv.style.display = (vdiv.style.display == 'none')?'block':'none';
+  }
+</script>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-right page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"> 
+
+<div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Fullstack Memo</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <h1 class="site-subtitle" itemprop="description">双引号的全栈备忘录</h1>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+          
+  <li class="menu-item menu-item-home">
+    <a href="/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+</li>
+
+      
+        
+        
+          
+  <li class="menu-item menu-item-tags">
+    <a href="/tags/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+</li>
+
+      
+        
+        
+          
+  <li class="menu-item menu-item-categories">
+    <a href="/categories/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+</li>
+
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+        </li>
+      
+    </ul>
+  
+
+  
+    
+
+    
+    
+      
+      
+    
+      
+      
+    
+      
+      
+    
+    
+
+  
+
+
+  
+
+  
+    <div class="site-search">
+      
+  
+  <div class="algolia-popup popup search-popup">
+    <div class="algolia-search">
+      <div class="algolia-search-input-icon">
+        <i class="fa fa-search"></i>
+      </div>
+      <div class="algolia-search-input" id="algolia-search-input"></div>
+    </div>
+
+    <div class="algolia-results">
+      <div id="algolia-stats"></div>
+      <div id="algolia-hits"></div>
+      <div id="algolia-pagination" class="algolia-pagination"></div>
+    </div>
+
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+  </div>
+
+
+
+
+    </div>
+  
+</nav>
+
+
+  
+
+
+
+ </div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+    <div class="reading-progress-bar"></div>
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://www.fullstackmemo.com/2018/10/11/cephfs-ha-mount-storage/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="x22x22">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/lemon-violet.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Fullstack Memo">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">基于cephfs搭建高可用分布式存储并mount到本地</h2>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-10-11T18:38:15+08:00">2018-10-11</time>
+            
+
+            
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/存储/" itemprop="url" rel="index"><span itemprop="name">存储</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="post-meta-item-icon">
+            <i class="fa fa-eye"></i>
+             阅读次数： 
+            <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>
+            </span>
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="服务器硬件配置及环境"><a href="#服务器硬件配置及环境" class="headerlink" title="服务器硬件配置及环境"></a>服务器硬件配置及环境</h2><table>
+<thead>
+<tr>
+<th>项目</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CPU</td>
+<td>1核</td>
+</tr>
+<tr>
+<td>内存</td>
+<td>1GB</td>
+</tr>
+<tr>
+<td>硬盘</td>
+<td>40GB</td>
+</tr>
+<tr>
+<td>系统</td>
+<td>CentOS 7.5</td>
+</tr>
+<tr>
+<td>时间同步服务</td>
+<td>chrony</td>
+</tr>
+<tr>
+<td>ceph</td>
+<td>13.2.2-0</td>
+</tr>
+</tbody>
+</table>
+<h2 id="节点部署图"><a href="#节点部署图" class="headerlink" title="节点部署图"></a>节点部署图</h2><p><img src="/2018/10/11/cephfs-ha-mount-storage/server-framework.png" alt="节点部署图"></p>
+<a id="more"></a>
+<h2 id="节点功能简介"><a href="#节点功能简介" class="headerlink" title="节点功能简介"></a>节点功能简介</h2><table>
+<thead>
+<tr>
+<th>项目</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>yum repo</td>
+<td>如果部署环境每个节点都可以访问外网, 则无需做任何操作, 部署脚本会自动添加外网环境的yum源. 如果部署无法访问外网, 需要自行部署centos, epel, ceph三个yum源. 每个节点都必须可以访问所提到的所有yum源</td>
+</tr>
+<tr>
+<td>时间同步服务器</td>
+<td>每个节点都必须可以访问, 如果部署环境无法访问外网需要自行搭建时间同步服务器</td>
+</tr>
+<tr>
+<td>client-x</td>
+<td>需要挂载存储的设备, 需要同时可以访问每个storage-ha-x和yum源, 时间服务器</td>
+</tr>
+<tr>
+<td>storage-deploy-1</td>
+<td>用于统一部署ceph集群的工作机, 系统为CentOS 7.5</td>
+</tr>
+<tr>
+<td>storage-ha-x</td>
+<td>承载ceph各项服务的服务器节点, 系统为CentOS 7.5</td>
+</tr>
+<tr>
+<td>mon</td>
+<td>Monitors, 节点映射管理, 身份验证管理, 需要达到冗余和高可用至少需要3个节点</td>
+</tr>
+<tr>
+<td>osd</td>
+<td>object storage daemon, 对象存储服务, 需要达到冗余和高可用至少需要3个节点</td>
+</tr>
+<tr>
+<td>mgr</td>
+<td>Manager, 用于跟踪运行指标和集群状态, 性能.</td>
+</tr>
+<tr>
+<td>mds</td>
+<td>Metadata Serve, 提供cephfs的元数据存储</td>
+</tr>
+</tbody>
+</table>
+<p><strong>参考</strong>:</p>
+<ul>
+<li><a href="http://docs.ceph.com/docs/mimic/start/intro" target="_blank" rel="noopener">INTRO TO CEPH</a></li>
+</ul>
+<h2 id="默认端口"><a href="#默认端口" class="headerlink" title="默认端口"></a>默认端口</h2><table>
+<thead>
+<tr>
+<th>项目</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ssh</td>
+<td>tcp: 22</td>
+</tr>
+<tr>
+<td>mon</td>
+<td>tcp: 6789</td>
+</tr>
+<tr>
+<td>mds/mgr/osd</td>
+<td>tcp: 6800~7300</td>
+</tr>
+</tbody>
+</table>
+<p><strong>参考</strong>:</p>
+<ul>
+<li><a href="http://docs.ceph.com/docs/mimic/rados/configuration/network-config-ref" target="_blank" rel="noopener">NETWORK CONFIGURATION REFERENCE</a></li>
+</ul>
+<h3 id="默认路径"><a href="#默认路径" class="headerlink" title="默认路径"></a>默认路径</h3><table>
+<thead>
+<tr>
+<th>项目</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>主配置文件</td>
+<td>/etc/ceph/ceph.conf</td>
+</tr>
+<tr>
+<td>配置文件夹</td>
+<td>/etc/ceph</td>
+</tr>
+<tr>
+<td>日志文件夹</td>
+<td>/var/log/ceph</td>
+</tr>
+<tr>
+<td>各服务认证key文件</td>
+<td>/var/lib/ceph/{server name}/{hostname}/keyring</td>
+</tr>
+<tr>
+<td>admin认证key文件</td>
+<td>ceph.client.admin.keyring</td>
+</tr>
+</tbody>
+</table>
+<h2 id="部署脚本说明"><a href="#部署脚本说明" class="headerlink" title="部署脚本说明"></a>部署脚本说明</h2><ul>
+<li>node-init.sh: storage-ha-x节点初期运行的初始化脚本</li>
+<li>admin-init.sh: storage-deploy-1节点初期运行的初始化脚本, 必须要在每个storage-ha-x节点都运行完node-init.sh之后才能运行.</li>
+<li>ceph-deploy.sh: ceph部署脚本, 仅在storage-deploy-1节点上运行即可, 需要在<code>node-init.sh</code>和<code>admin-init.sh</code>运行完成且成功后运行.</li>
+</ul>
+<p><strong>PS</strong>: 脚本中涉及到的ip和其它不同信息请先自行修改后再运行.</p>
+<h2 id="脚本运行命令"><a href="#脚本运行命令" class="headerlink" title="脚本运行命令"></a>脚本运行命令</h2><p>请将 <code>附录: 脚本内容</code>章节或<code>脚本Git库</code>章节中的各个脚本放到各个对应服务器任意位置并使用以下命令按照顺序运行.</p>
+<p><strong>PS</strong>: 需严格按照<code>部署脚本说明</code>章节中的持续顺序执行脚本.</p>
+<p><strong>PS</strong>: 脚本中涉及到不同于当前环境的信息(如: ip, yum源, 密码, 主机名等)请先自行修改后再运行.</p>
+<ul>
+<li>初始化ceph节点</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/bin/bash node-init.sh</span><br></pre></td></tr></table></figure>
+<p>执行命令结果</p>
+<p><img src="/2018/10/11/cephfs-ha-mount-storage/init-node-1.png" alt="初始化ceph节点"></p>
+<ul>
+<li>初始化部署节点</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/bin/bash admin-init.sh</span><br></pre></td></tr></table></figure>
+<p>执行命令结果</p>
+<p><img src="/2018/10/11/cephfs-ha-mount-storage/init-admin-1.png" alt="初始化部署节点"></p>
+<p><img src="/2018/10/11/cephfs-ha-mount-storage/init-admin-2.png" alt="初始化部署节点"></p>
+<ul>
+<li>开始部署</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/bin/bash ceph-deploy.sh</span><br></pre></td></tr></table></figure>
+<p>执行命令结果</p>
+<p><img src="/2018/10/11/cephfs-ha-mount-storage/deploy-ceph-1.png" alt="部署结果-1"></p>
+<p>可以看到上方的<code>pgs</code>下方有个<code>creating+peering</code>, 这表示OSDs在创建和准备同步中.需要等待</p>
+<p>这时可以在任意有admin角色的<code>storage-ha-x</code>节点上执行以下命令看查是否完成准备</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ceph -s</span><br></pre></td></tr></table></figure>
+<p>当<code>pgs</code>显示为下图的<code>active+clean</code>代表各个节点同步完成.</p>
+<p><img src="/2018/10/11/cephfs-ha-mount-storage/deploy-ceph-2.png" alt="部署结果-2"></p>
+<p>如果一直无法达到<code>active+clean</code>状态, 请参考以下操作文章:<br><a href="http://docs.ceph.com/docs/mimic/rados/troubleshooting/troubleshooting-pg" target="_blank" rel="noopener">TROUBLESHOOTING PGS</a></p>
+<h2 id="挂载存储"><a href="#挂载存储" class="headerlink" title="挂载存储"></a>挂载存储</h2><h3 id="创建测试用户"><a href="#创建测试用户" class="headerlink" title="创建测试用户"></a>创建测试用户</h3><p>以下命令在任意一个storage-ha-x服务器上运行</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 此命令含义是创建一个名为client.fs-test-1的用户, 对于挂载的根目录'/'只有可读权限, 对于挂载的'/test_1'目录有读写权限.</span></span><br><span class="line">ceph fs authorize cephfs client.fs-test-1 / r /test_1 rw</span><br><span class="line"><span class="comment"># 命令输入完成后会返回类如下信息:</span></span><br><span class="line"><span class="comment"># [client.fs-test-1]</span></span><br><span class="line"><span class="comment">#         key = AQA0Cr9b9afRDBAACJ0M8HxsP41XmLhbSxWkqA==</span></span><br></pre></td></tr></table></figure>
+<h3 id="获取用户授权信息"><a href="#获取用户授权信息" class="headerlink" title="获取用户授权信息"></a>获取用户授权信息</h3><p>以下命令在任意一个添加过<code>admin</code>角色的storage-ha-x服务器上运行</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 获取client.admin用户的授权信息</span></span><br><span class="line">ceph auth get client.admin</span><br><span class="line"><span class="comment"># 命令输入后会返回类似如下信息</span></span><br><span class="line"><span class="comment"># [client.admin]</span></span><br><span class="line"><span class="comment">#         key = AQAm4L5b60alLhAARxAgr9jQDLopr9fbXfm87w==</span></span><br><span class="line"><span class="comment">#         caps mds = "allow *"</span></span><br><span class="line"><span class="comment">#         caps mgr = "allow *"</span></span><br><span class="line"><span class="comment">#         caps mon = "allow *"</span></span><br><span class="line"><span class="comment">#         caps osd = "allow *"</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 获取client.fs-test-1用户的授权信息</span></span><br><span class="line">ceph auth get client.fs-test-1</span><br><span class="line"><span class="comment"># 命令输入后会返回类似如下信息</span></span><br><span class="line"><span class="comment"># [client.fs-test-1]</span></span><br><span class="line"><span class="comment">#         key = AQA0Cr9b9afRDBAACJ0M8HxsP41XmLhbSxWkqA==</span></span><br><span class="line"><span class="comment">#         caps mds = "allow r, allow rw path=/test-1"</span></span><br><span class="line"><span class="comment">#         caps mon = "allow r"</span></span><br><span class="line"><span class="comment">#         caps osd = "allow rw tag cephfs data=cephfs"</span></span><br></pre></td></tr></table></figure>
+<h3 id="挂载方式"><a href="#挂载方式" class="headerlink" title="挂载方式"></a>挂载方式</h3><p>挂载方式分为两种, 分别是cephfs和fuse. 选择其中一种方式进行挂载即可.</p>
+<p>两种挂载方式的区别和优势请参考以下文章:<br><a href="http://docs.ceph.com/docs/mimic/cephfs/best-practices/#which-client" target="_blank" rel="noopener">WHICH CLIENT?</a></p>
+<h3 id="cephfs方式"><a href="#cephfs方式" class="headerlink" title="cephfs方式"></a>cephfs方式</h3><p>以下命令在任意需要挂载存储的client下执行</p>
+<p><strong>PS</strong>: 此挂载方式依赖于ceph, 需要先添加ceph和epel的yum源.</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># cephfs方式挂载</span></span><br><span class="line">yum install ceph -y</span><br><span class="line">mkdir -p /etc/ceph</span><br><span class="line">mkdir -p /mnt/mycephfs</span><br><span class="line"><span class="comment"># 以下写入的secret请根据'获取用户授权信息'章节中获取到的'key'进行修改</span></span><br><span class="line">cat &gt; /etc/ceph/admin_secret.key &lt;&lt; EOF</span><br><span class="line">AQAm4L5b60alLhAARxAgr9jQDLopr9fbXfm87w==</span><br><span class="line">EOF</span><br><span class="line"></span><br><span class="line"><span class="comment"># 以下写入的secret请根据'获取用户授权信息'章节中获取到的'key'进行修改</span></span><br><span class="line">cat &gt; /etc/ceph/test_cephfs_1_secret.key &lt;&lt; EOF</span><br><span class="line">AQA0Cr9b9afRDBAACJ0M8HxsP41XmLhbSxWkqA==</span><br><span class="line">EOF</span><br><span class="line"></span><br><span class="line"><span class="comment"># 使用'admin'用户挂载cephfs的根目录</span></span><br><span class="line"><span class="comment"># ip或主机名请根据实际情况修改</span></span><br><span class="line"><span class="comment"># 这里填写的'name=admin'是'client.admin'点后面的'admin'.</span></span><br><span class="line">mount.ceph 192.168.60.111:6789,192.168.60.112:6789,192.168.60.113:6789:/ /mnt/mycephfs -o name=admin,secretfile=/etc/ceph/admin_secret.key</span><br><span class="line"></span><br><span class="line"><span class="comment"># 使用只读的用户挂载</span></span><br><span class="line">mkdir -p /mnt/mycephfs/test_1</span><br><span class="line">mkdir -p /mnt/test_cephfs_1</span><br><span class="line"><span class="comment"># 使用'fs-test-1'用户挂载cephfs的根目录</span></span><br><span class="line"><span class="comment"># ip或主机名请根据实际情况修改</span></span><br><span class="line"><span class="comment"># 这里填写的'name=fs-test-1'是'client.fs-test-1'点后面的'fs-test-1'.</span></span><br><span class="line">mount.ceph 192.168.60.111:6789,192.168.60.112:6789,192.168.60.113:6789:/ /mnt/test_cephfs_1 -o name=fs-test-1,secretfile=/etc/ceph/test_cephfs_1_secret.key</span><br><span class="line"></span><br><span class="line"><span class="comment"># 开机自动挂载</span></span><br><span class="line">cat &gt;&gt; /etc/fstab &lt;&lt; EOF</span><br><span class="line">192.168.60.111:6789,192.168.60.112:6789,192.168.60.113:6789:/     /mnt/mycephfs    ceph    name=admin,secretfile=/etc/ceph/secret.key,noatime,_netdev    0       2</span><br><span class="line">EOF</span><br></pre></td></tr></table></figure>
+<h3 id="fuse方式"><a href="#fuse方式" class="headerlink" title="fuse方式"></a>fuse方式</h3><p>以下命令在任意需要挂载存储的client下执行</p>
+<p><strong>PS</strong>: 此挂载方式依赖于ceph-fuse, 需要先添加ceph和epel的yum源.</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line">yum install ceph-fuse -y</span><br><span class="line">mkdir -p /etc/ceph</span><br><span class="line">mkdir -p /mnt/mycephfs</span><br><span class="line"></span><br><span class="line"><span class="comment"># 获取storage-ha-x任意一个节点上的ceph配置文件</span></span><br><span class="line">scp storage@storage-ha-1:/etc/ceph/ceph.conf /etc/ceph/ceph.conf</span><br><span class="line"></span><br><span class="line"><span class="comment"># 以下写入的secret请根据'获取用户授权信息'章节中获取到的'key'进行修改</span></span><br><span class="line">cat &gt; /etc/ceph/ceph.keyring &lt;&lt; EOF</span><br><span class="line">[client.admin]</span><br><span class="line">        key = AQAm4L5b60alLhAARxAgr9jQDLopr9fbXfm87w==</span><br><span class="line">        caps mds = <span class="string">"allow *"</span></span><br><span class="line">        caps mgr = <span class="string">"allow *"</span></span><br><span class="line">        caps mon = <span class="string">"allow *"</span></span><br><span class="line">        caps osd = <span class="string">"allow *"</span></span><br><span class="line">[client.fs-test-1]</span><br><span class="line">        key = AQA0Cr9b9afRDBAACJ0M8HxsP41XmLhbSxWkqA==</span><br><span class="line">        caps mds = <span class="string">"allow r, allow rw path=/test-1"</span></span><br><span class="line">        caps mon = <span class="string">"allow r"</span></span><br><span class="line">        caps osd = <span class="string">"allow rw tag cephfs data=cephfs"</span></span><br><span class="line">EOF</span><br><span class="line"></span><br><span class="line"><span class="comment"># 使用'admin'用户挂载cephfs的根目录</span></span><br><span class="line"><span class="comment"># ip或主机名请根据实际情况修改</span></span><br><span class="line">ceph-fuse -m 192.168.60.111:6789,192.168.60.112:6789,192.168.60.113:6789 /mnt/mycephfs</span><br><span class="line"><span class="comment"># 开机自动挂载</span></span><br><span class="line">cat &gt;&gt; /etc/fstab &lt;&lt; EOF</span><br><span class="line">none    /mnt/ceph  fuse.ceph ceph.id=admin,ceph.conf=/etc/ceph/ceph.conf,_netdev,defaults  0 0</span><br><span class="line">EOF</span><br><span class="line"></span><br><span class="line"><span class="comment"># 使用只读的用户挂载</span></span><br><span class="line">mkdir -p /mnt/mycephfs/test_1</span><br><span class="line">mkdir -p /mnt/test_cephfs_1</span><br><span class="line"><span class="comment"># 使用'fs-test-1'用户挂载cephfs的根目录</span></span><br><span class="line"><span class="comment"># ip或主机名请根据实际情况修改</span></span><br><span class="line"><span class="comment"># 这里填写的'-n client.fs-test-1'是完整的'client.fs-test-1'.</span></span><br><span class="line">ceph-fuse -m 192.168.60.111:6789,192.168.60.112:6789,192.168.60.113:6789 -n client.fs-test-1 /mnt/test_cephfs_1</span><br></pre></td></tr></table></figure>
+<h3 id="挂载结果"><a href="#挂载结果" class="headerlink" title="挂载结果"></a>挂载结果</h3><p>挂载结果可以使用以下命令查看</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">df -h</span><br></pre></td></tr></table></figure>
+<p><img src="/2018/10/11/cephfs-ha-mount-storage/mount-result-1.png" alt="挂载结果"></p>
+<h2 id="运维命令"><a href="#运维命令" class="headerlink" title="运维命令"></a>运维命令</h2><ul>
+<li>状态查看</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 查看集群整体状态</span></span><br><span class="line">ceph -s</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看集群健康状态</span></span><br><span class="line">ceph health</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看集群健康状态详情</span></span><br><span class="line">ceph health detail</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看cephfs列表</span></span><br><span class="line">ceph fs ls</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看mds状态</span></span><br><span class="line">ceph mds <span class="built_in">stat</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看 osd节点状态</span></span><br><span class="line">ceph osd tree</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看监视器情况</span></span><br><span class="line">ceph quorum_status --format json-pretty</span><br></pre></td></tr></table></figure>
+<ul>
+<li>简单写性能测试</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 在挂载了存储的client下简单测试写性能</span></span><br><span class="line">time dd <span class="keyword">if</span>=/dev/zero of=/mnt/mycephfs/test.dbf bs=8k count=3000 oflag=direct</span><br></pre></td></tr></table></figure>
+<p><img src="/2018/10/11/cephfs-ha-mount-storage/test-result-1.png" alt="测试结果"></p>
+<ul>
+<li>删除cephfs和pool</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 删除cephfs前需要的操作</span></span><br><span class="line"><span class="comment"># 停止每个mds节点的mds服务</span></span><br><span class="line"><span class="comment"># 每个mds节点上都要执行</span></span><br><span class="line">systemctl stop ceph-mds.target</span><br><span class="line"></span><br><span class="line"><span class="comment"># 仅在任意一台'storage-ha-x'上执行</span></span><br><span class="line"><span class="comment"># 删除cephfs</span></span><br><span class="line">ceph fs rm cephfs --yes-i-really-mean-it</span><br><span class="line"></span><br><span class="line"><span class="comment"># 删除pool</span></span><br><span class="line"><span class="comment"># 需要删除pool的时候需要写两次pool名外带'--yes-i-really-really-mean-it'参数</span></span><br><span class="line">ceph osd pool rm cephfs_data cephfs_data --yes-i-really-really-mean-it</span><br><span class="line">ceph osd pool rm cephfs_metadata cephfs_metadata --yes-i-really-really-mean-it</span><br><span class="line"></span><br><span class="line"><span class="comment"># 停止每个mds节点的mds服务</span></span><br><span class="line"><span class="comment"># 每个mds节点上都要执行</span></span><br><span class="line">systemctl start ceph-mds.target</span><br></pre></td></tr></table></figure>
+<ul>
+<li>同步ceph配置文件</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 同步的配置文件</span></span><br><span class="line"><span class="comment"># 如果节点上有配置文件且和当前要同步的配置文件不通, 需要带'--overwrite-conf'参数</span></span><br><span class="line"><span class="comment"># 此命令会把执行此命令目录下的'ceph.conf'文件同步到各个指定节点上</span></span><br><span class="line">ceph-deploy --overwrite-conf config push storage-ha-1 storage-ha-2 storage-ha-3</span><br><span class="line"></span><br><span class="line"><span class="comment"># 重启每个节点的cepf相关服务</span></span><br><span class="line"><span class="comment"># 需要在有对应功能节点的节点上分别运行以下命令</span></span><br><span class="line">systemctl restart ceph-osd.target</span><br><span class="line">systemctl restart ceph-mds.target</span><br><span class="line">systemctl restart ceph-mon.target</span><br><span class="line">systemctl restart ceph-mgr.target</span><br></pre></td></tr></table></figure>
+<h2 id="FAQ"><a href="#FAQ" class="headerlink" title="FAQ"></a>FAQ</h2><ul>
+<li><p>Q: health_warn：clock skew detected on mon<br>A: 使用chrony同步每台服务器节点的时间</p>
+</li>
+<li><p>Q: Error ERANGE:  pg_num “*“ size “*“ would mean “*“ total pgs, which exceeds max “*“ (mon_max_pg_per_osd 250 <em> num_in_osds “\</em>“)<br>A: ceph.conf配置文件中加入<code>mon_max_pg_per_osd = 1000</code>(参数中的数值自己根据实际情况修改)并用<code>同步ceph配置文件</code>方式上传到各个节点, 并重启<code>ceph-mon.target</code></p>
+</li>
+<li><p>Q: too many PGs per OSD<br>A: ceph.conf配置文件中加入<code>mon_max_pg_per_osd = 1000</code>(参数中的数值自己根据实际情况修改)并用<code>同步ceph配置文件</code>方式上传到各个节点, 并重启<code>ceph-mon.target</code></p>
+</li>
+</ul>
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><p><a href="http://docs.ceph.com/docs/mimic/rados/configuration/auth-config-ref" target="_blank" rel="noopener">ceph cephx认证参考</a><br><a href="http://docs.ceph.com/docs/mimic/cephfs/client-auth" target="_blank" rel="noopener">设置cephfs访问权限</a><br><a href="http://docs.ceph.com/docs/mimic/rados/operations/user-management" target="_blank" rel="noopener">ceph用户管理</a><br><a href="http://docs.ceph.com/docs/mimic/cephfs/fuse" target="_blank" rel="noopener">ceph-fuse方式挂载</a><br><a href="https://legacy.gitbook.com/book/lihaijing/ceph-handbook/details" target="_blank" rel="noopener">Ceph 运维手册</a><br><a href="http://ceph.org.cn/2018/06/29/red-hat-ceph存储-《深入理解ceph架构》" target="_blank" rel="noopener">Red Hat Ceph存储—《深入理解Ceph架构》</a><br><a href="https://www.cnblogs.com/kevingrace/p/5569737.html" target="_blank" rel="noopener">Ceph常规操作及常见问题梳理</a></p>
+<h1 id="脚本Git库"><a href="#脚本Git库" class="headerlink" title="脚本Git库"></a>脚本Git库</h1><p><a href="https://github.com/x22x22/cephfs-verify-script" target="_blank" rel="noopener">https://github.com/x22x22/cephfs-verify-script</a></p>
+<h2 id="附录-脚本内容"><a href="#附录-脚本内容" class="headerlink" title="附录: 脚本内容"></a>附录: 脚本内容</h2><ul>
+<li>node-init.sh</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 禁用ipv6, 加大pid限制</span></span><br><span class="line">cat &gt;&gt;/etc/sysctl.conf &lt;&lt;EOF</span><br><span class="line">net.ipv6.conf.all.disable_ipv6 = 1</span><br><span class="line">net.ipv6.conf.default.disable_ipv6 = 1</span><br><span class="line">kernel.pid_max = 4194303</span><br><span class="line">EOF</span><br><span class="line"></span><br><span class="line">sysctl -p</span><br><span class="line">sysctl -w net.ipv6.conf.all.disable_ipv6=1</span><br><span class="line">sysctl -w net.ipv6.conf.default.disable_ipv6=1</span><br><span class="line"></span><br><span class="line"><span class="comment"># 简单代替dns服务器写入当前环境中的主机名和ip的对应关系</span></span><br><span class="line">cat &gt;&gt;/etc/hosts &lt;&lt;EOF</span><br><span class="line"></span><br><span class="line">192.168.60.110 storage-deploy-1</span><br><span class="line">192.168.60.111 storage-ha-1</span><br><span class="line">192.168.60.112 storage-ha-2</span><br><span class="line">192.168.60.113 storage-ha-3</span><br><span class="line">EOF</span><br><span class="line"></span><br><span class="line">systemctl stop firewalld</span><br><span class="line">systemctl <span class="built_in">disable</span> firewalld</span><br><span class="line">setenforce 0</span><br><span class="line">sed -i <span class="string">'s/SELINUX=.*/SELINUX=disabled/g'</span> /etc/selinux/config</span><br><span class="line"></span><br><span class="line"><span class="comment"># 添加一个storage用户, 用于ceph-deploy工具进行节点的安装和操作</span></span><br><span class="line">useradd -d /home/storage -m storage</span><br><span class="line"><span class="built_in">echo</span> <span class="string">'fullstackmemo***'</span> | passwd --stdin storage</span><br><span class="line"><span class="built_in">echo</span> <span class="string">"storage ALL = (root) NOPASSWD:ALL"</span> | tee /etc/sudoers.d/storage</span><br><span class="line">chmod 0440 /etc/sudoers.d/storage</span><br><span class="line"></span><br><span class="line"><span class="comment"># 添加ceph的yum源, 如果无法访问外网请自行搭建并修改</span></span><br><span class="line">cat &gt;/etc/yum.repos.d/ceph.repo &lt;&lt;<span class="string">'EOF'</span></span><br><span class="line">[Ceph]</span><br><span class="line">name=Ceph packages <span class="keyword">for</span> <span class="variable">$basearch</span></span><br><span class="line">baseurl=http://mirror.tuna.tsinghua.edu.cn/ceph/rpm-mimic/el7/<span class="variable">$basearch</span></span><br><span class="line">enabled=1</span><br><span class="line">gpgcheck=1</span><br><span class="line"><span class="built_in">type</span>=rpm-md</span><br><span class="line">gpgkey=https://mirror.tuna.tsinghua.edu.cn/ceph/keys/release.asc</span><br><span class="line">priority=1</span><br><span class="line"></span><br><span class="line">[Ceph-noarch]</span><br><span class="line">name=Ceph noarch packages</span><br><span class="line">baseurl=http://mirror.tuna.tsinghua.edu.cn/ceph/rpm-mimic/el7/noarch</span><br><span class="line">enabled=1</span><br><span class="line">gpgcheck=1</span><br><span class="line"><span class="built_in">type</span>=rpm-md</span><br><span class="line">gpgkey=https://mirror.tuna.tsinghua.edu.cn/ceph/keys/release.asc</span><br><span class="line">priority=1</span><br><span class="line"></span><br><span class="line">[ceph-source]</span><br><span class="line">name=Ceph <span class="built_in">source</span> packages</span><br><span class="line">baseurl=http://mirror.tuna.tsinghua.edu.cn/ceph/rpm-mimic/el7/SRPMS</span><br><span class="line">enabled=1</span><br><span class="line">gpgcheck=1</span><br><span class="line"><span class="built_in">type</span>=rpm-md</span><br><span class="line">gpgkey=https://mirror.tuna.tsinghua.edu.cn/ceph/keys/release.asc</span><br><span class="line">priority=1</span><br><span class="line"></span><br><span class="line">EOF</span><br><span class="line"></span><br><span class="line">mv /etc/yum.repos.d/CentOS-Base.repo /etc/yum.repos.d/CentOS-Base.repo.backup</span><br><span class="line"></span><br><span class="line"><span class="comment"># 修改CentOS的yum基础源, 如果无法访问外网请自行搭建并修改</span></span><br><span class="line">cat &gt;/etc/yum.repos.d/CentOS-Base.repo &lt;&lt;<span class="string">'EOF'</span></span><br><span class="line"><span class="comment"># CentOS-Base.repo</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="comment"># The mirror system uses the connecting IP address of the client and the</span></span><br><span class="line"><span class="comment"># update status of each mirror to pick mirrors that are updated to and</span></span><br><span class="line"><span class="comment"># geographically close to the client.  You should use this for CentOS updates</span></span><br><span class="line"><span class="comment"># unless you are manually picking other mirrors.</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="comment"># If the mirrorlist= does not work for you, as a fall back you can try the</span></span><br><span class="line"><span class="comment"># remarked out baseurl= line instead.</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"></span><br><span class="line">[base]</span><br><span class="line">name=CentOS-<span class="variable">$releasever</span> - Base</span><br><span class="line">baseurl=https://mirrors.tuna.tsinghua.edu.cn/centos/<span class="variable">$releasever</span>/os/<span class="variable">$basearch</span>/</span><br><span class="line"><span class="comment">#mirrorlist=http://mirrorlist.centos.org/?release=$releasever&amp;arch=$basearch&amp;repo=os</span></span><br><span class="line">gpgcheck=1</span><br><span class="line">gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7</span><br><span class="line"></span><br><span class="line"><span class="comment">#released updates</span></span><br><span class="line">[updates]</span><br><span class="line">name=CentOS-<span class="variable">$releasever</span> - Updates</span><br><span class="line">baseurl=https://mirrors.tuna.tsinghua.edu.cn/centos/<span class="variable">$releasever</span>/updates/<span class="variable">$basearch</span>/</span><br><span class="line"><span class="comment">#mirrorlist=http://mirrorlist.centos.org/?release=$releasever&amp;arch=$basearch&amp;repo=updates</span></span><br><span class="line">gpgcheck=1</span><br><span class="line">gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7</span><br><span class="line"></span><br><span class="line"><span class="comment">#additional packages that may be useful</span></span><br><span class="line">[extras]</span><br><span class="line">name=CentOS-<span class="variable">$releasever</span> - Extras</span><br><span class="line">baseurl=https://mirrors.tuna.tsinghua.edu.cn/centos/<span class="variable">$releasever</span>/extras/<span class="variable">$basearch</span>/</span><br><span class="line"><span class="comment">#mirrorlist=http://mirrorlist.centos.org/?release=$releasever&amp;arch=$basearch&amp;repo=extras</span></span><br><span class="line">gpgcheck=1</span><br><span class="line">gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7</span><br><span class="line"></span><br><span class="line"><span class="comment">#additional packages that extend functionality of existing packages</span></span><br><span class="line">[centosplus]</span><br><span class="line">name=CentOS-<span class="variable">$releasever</span> - Plus</span><br><span class="line">baseurl=https://mirrors.tuna.tsinghua.edu.cn/centos/<span class="variable">$releasever</span>/centosplus/<span class="variable">$basearch</span>/</span><br><span class="line"><span class="comment">#mirrorlist=http://mirrorlist.centos.org/?release=$releasever&amp;arch=$basearch&amp;repo=centosplus</span></span><br><span class="line">gpgcheck=1</span><br><span class="line">enabled=0</span><br><span class="line">gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7</span><br><span class="line">EOF</span><br><span class="line"></span><br><span class="line">yum makecache fast</span><br><span class="line"><span class="comment"># 安装CentOS的yum epel源</span></span><br><span class="line">yum install -y epel-release</span><br><span class="line"></span><br><span class="line"><span class="comment"># 修改CentOS的yum epel源, 如果无法访问外网请自行搭建并修改</span></span><br><span class="line">cat &gt;/etc/yum.repos.d/epel.repo &lt;&lt;<span class="string">'EOF'</span></span><br><span class="line">[epel]</span><br><span class="line">name=Extra Packages <span class="keyword">for</span> Enterprise Linux 7 - <span class="variable">$basearch</span></span><br><span class="line">baseurl=https://mirrors.tuna.tsinghua.edu.cn/epel/7/<span class="variable">$basearch</span></span><br><span class="line"><span class="comment">#mirrorlist=https://mirrors.fedoraproject.org/metalink?repo=epel-7&amp;arch=$basearch</span></span><br><span class="line">failovermethod=priority</span><br><span class="line">enabled=1</span><br><span class="line">gpgcheck=1</span><br><span class="line">gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-7</span><br><span class="line"></span><br><span class="line">[epel-debuginfo]</span><br><span class="line">name=Extra Packages <span class="keyword">for</span> Enterprise Linux 7 - <span class="variable">$basearch</span> - Debug</span><br><span class="line">baseurl=https://mirrors.tuna.tsinghua.edu.cn/epel/7/<span class="variable">$basearch</span>/debug</span><br><span class="line"><span class="comment">#mirrorlist=https://mirrors.fedoraproject.org/metalink?repo=epel-debug-7&amp;arch=$basearch</span></span><br><span class="line">failovermethod=priority</span><br><span class="line">enabled=0</span><br><span class="line">gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-7</span><br><span class="line">gpgcheck=1</span><br><span class="line"></span><br><span class="line">[epel-source]</span><br><span class="line">name=Extra Packages <span class="keyword">for</span> Enterprise Linux 7 - <span class="variable">$basearch</span> - Source</span><br><span class="line">baseurl=https://mirrors.tuna.tsinghua.edu.cn/epel/7/SRPMS</span><br><span class="line"><span class="comment">#mirrorlist=https://mirrors.fedoraproject.org/metalink?repo=epel-source-7&amp;arch=$basearch</span></span><br><span class="line">failovermethod=priority</span><br><span class="line">enabled=0</span><br><span class="line">gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-7</span><br><span class="line">gpgcheck=1</span><br><span class="line">EOF</span><br><span class="line"></span><br><span class="line">yum makecache</span><br><span class="line">yum install yum-plugin-priorities chrony parted xfsprogs -y</span><br><span class="line">mv /etc/chrony.conf /etc/chrony.conf.bk</span><br><span class="line"></span><br><span class="line"><span class="comment"># 添加时间同步服务器, 如果无法访问外网请自行搭建并修改</span></span><br><span class="line"><span class="comment"># 添加时间同步服务器, 如果无法访问外网请更换成yum.yfb.sunline.cn和nexus.yfb.sunline.cn</span></span><br><span class="line">cat &gt; /etc/chrony.conf &lt;&lt; EOF</span><br><span class="line">server ntp.api.bz iburst</span><br><span class="line">driftfile /var/lib/chrony/drift</span><br><span class="line">makestep 1.0 3</span><br><span class="line">rtcsync</span><br><span class="line">logdir /var/<span class="built_in">log</span>/chrony</span><br><span class="line">EOF</span><br><span class="line"></span><br><span class="line">systemctl <span class="built_in">enable</span> chronyd</span><br><span class="line">systemctl restart chronyd</span><br><span class="line">sleep 10</span><br><span class="line">chronyc activity</span><br><span class="line">chronyc sources -v</span><br><span class="line">hwclock -w</span><br><span class="line"></span><br><span class="line"><span class="comment"># 这里将/dev/sdb作为ceph的存储池, 所以先格式化/dev/sdb, 请根据自己实际情况修改</span></span><br><span class="line">parted -s /dev/sdb mklabel gpt mkpart primary xfs 0% 100%</span><br><span class="line">partprobe /dev/sdb</span><br><span class="line">mkfs.xfs /dev/sdb -f</span><br></pre></td></tr></table></figure>
+<ul>
+<li>admin-init.sh</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 禁用ipv6</span></span><br><span class="line">cat &gt;&gt;/etc/sysctl.conf &lt;&lt;EOF</span><br><span class="line">net.ipv6.conf.all.disable_ipv6 = 1</span><br><span class="line">net.ipv6.conf.default.disable_ipv6 = 1</span><br><span class="line">EOF</span><br><span class="line"></span><br><span class="line">sysctl -p</span><br><span class="line">sysctl -w net.ipv6.conf.all.disable_ipv6=1</span><br><span class="line">sysctl -w net.ipv6.conf.default.disable_ipv6=1</span><br><span class="line"></span><br><span class="line"><span class="comment"># 简单代替dns服务器写入当前环境中的主机名和ip的对应关系</span></span><br><span class="line">cat &gt;&gt;/etc/hosts &lt;&lt;EOF</span><br><span class="line"></span><br><span class="line">192.168.60.110 storage-deploy-1</span><br><span class="line">192.168.60.111 storage-ha-1</span><br><span class="line">192.168.60.112 storage-ha-2</span><br><span class="line">192.168.60.113 storage-ha-3</span><br><span class="line">EOF</span><br><span class="line"></span><br><span class="line">systemctl stop firewalld</span><br><span class="line">systemctl <span class="built_in">disable</span> firewalld</span><br><span class="line">setenforce 0</span><br><span class="line">sed -i <span class="string">'s/SELINUX=.*/SELINUX=disabled/g'</span> /etc/selinux/config</span><br><span class="line"></span><br><span class="line"><span class="comment"># 添加ceph的yum源, 如果无法访问外网请自行搭建并修改</span></span><br><span class="line">cat &gt;/etc/yum.repos.d/ceph.repo &lt;&lt;<span class="string">'EOF'</span></span><br><span class="line">[Ceph]</span><br><span class="line">name=Ceph packages <span class="keyword">for</span> <span class="variable">$basearch</span></span><br><span class="line">baseurl=http://mirror.tuna.tsinghua.edu.cn/ceph/rpm-mimic/el7/<span class="variable">$basearch</span></span><br><span class="line">enabled=1</span><br><span class="line">gpgcheck=1</span><br><span class="line"><span class="built_in">type</span>=rpm-md</span><br><span class="line">gpgkey=https://mirror.tuna.tsinghua.edu.cn/ceph/keys/release.asc</span><br><span class="line">priority=1</span><br><span class="line"></span><br><span class="line">[Ceph-noarch]</span><br><span class="line">name=Ceph noarch packages</span><br><span class="line">baseurl=http://mirror.tuna.tsinghua.edu.cn/ceph/rpm-mimic/el7/noarch</span><br><span class="line">enabled=1</span><br><span class="line">gpgcheck=1</span><br><span class="line"><span class="built_in">type</span>=rpm-md</span><br><span class="line">gpgkey=https://mirror.tuna.tsinghua.edu.cn/ceph/keys/release.asc</span><br><span class="line">priority=1</span><br><span class="line"></span><br><span class="line">[ceph-source]</span><br><span class="line">name=Ceph <span class="built_in">source</span> packages</span><br><span class="line">baseurl=http://mirror.tuna.tsinghua.edu.cn/ceph/rpm-mimic/el7/SRPMS</span><br><span class="line">enabled=1</span><br><span class="line">gpgcheck=1</span><br><span class="line"><span class="built_in">type</span>=rpm-md</span><br><span class="line">gpgkey=https://mirror.tuna.tsinghua.edu.cn/ceph/keys/release.asc</span><br><span class="line">priority=1</span><br><span class="line"></span><br><span class="line">EOF</span><br><span class="line"></span><br><span class="line">mv /etc/yum.repos.d/CentOS-Base.repo /etc/yum.repos.d/CentOS-Base.repo.backup</span><br><span class="line"></span><br><span class="line"><span class="comment"># 修改CentOS的yum基础源, 如果无法访问外网请自行搭建并修改</span></span><br><span class="line">cat &gt;/etc/yum.repos.d/CentOS-Base.repo &lt;&lt;<span class="string">'EOF'</span></span><br><span class="line"><span class="comment"># CentOS-Base.repo</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="comment"># The mirror system uses the connecting IP address of the client and the</span></span><br><span class="line"><span class="comment"># update status of each mirror to pick mirrors that are updated to and</span></span><br><span class="line"><span class="comment"># geographically close to the client.  You should use this for CentOS updates</span></span><br><span class="line"><span class="comment"># unless you are manually picking other mirrors.</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="comment"># If the mirrorlist= does not work for you, as a fall back you can try the</span></span><br><span class="line"><span class="comment"># remarked out baseurl= line instead.</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"></span><br><span class="line">[base]</span><br><span class="line">name=CentOS-<span class="variable">$releasever</span> - Base</span><br><span class="line">baseurl=https://mirrors.tuna.tsinghua.edu.cn/centos/<span class="variable">$releasever</span>/os/<span class="variable">$basearch</span>/</span><br><span class="line"><span class="comment">#mirrorlist=http://mirrorlist.centos.org/?release=$releasever&amp;arch=$basearch&amp;repo=os</span></span><br><span class="line">gpgcheck=1</span><br><span class="line">gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7</span><br><span class="line"></span><br><span class="line"><span class="comment">#released updates</span></span><br><span class="line">[updates]</span><br><span class="line">name=CentOS-<span class="variable">$releasever</span> - Updates</span><br><span class="line">baseurl=https://mirrors.tuna.tsinghua.edu.cn/centos/<span class="variable">$releasever</span>/updates/<span class="variable">$basearch</span>/</span><br><span class="line"><span class="comment">#mirrorlist=http://mirrorlist.centos.org/?release=$releasever&amp;arch=$basearch&amp;repo=updates</span></span><br><span class="line">gpgcheck=1</span><br><span class="line">gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7</span><br><span class="line"></span><br><span class="line"><span class="comment">#additional packages that may be useful</span></span><br><span class="line">[extras]</span><br><span class="line">name=CentOS-<span class="variable">$releasever</span> - Extras</span><br><span class="line">baseurl=https://mirrors.tuna.tsinghua.edu.cn/centos/<span class="variable">$releasever</span>/extras/<span class="variable">$basearch</span>/</span><br><span class="line"><span class="comment">#mirrorlist=http://mirrorlist.centos.org/?release=$releasever&amp;arch=$basearch&amp;repo=extras</span></span><br><span class="line">gpgcheck=1</span><br><span class="line">gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7</span><br><span class="line"></span><br><span class="line"><span class="comment">#additional packages that extend functionality of existing packages</span></span><br><span class="line">[centosplus]</span><br><span class="line">name=CentOS-<span class="variable">$releasever</span> - Plus</span><br><span class="line">baseurl=https://mirrors.tuna.tsinghua.edu.cn/centos/<span class="variable">$releasever</span>/centosplus/<span class="variable">$basearch</span>/</span><br><span class="line"><span class="comment">#mirrorlist=http://mirrorlist.centos.org/?release=$releasever&amp;arch=$basearch&amp;repo=centosplus</span></span><br><span class="line">gpgcheck=1</span><br><span class="line">enabled=0</span><br><span class="line">gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7</span><br><span class="line">EOF</span><br><span class="line"></span><br><span class="line">yum makecache fast</span><br><span class="line"><span class="comment"># 安装CentOS的yum epel源</span></span><br><span class="line">yum install -y epel-release</span><br><span class="line"></span><br><span class="line"><span class="comment"># 修改CentOS的yum epel源, 如果无法访问外网请自行搭建并修改</span></span><br><span class="line">cat &gt;/etc/yum.repos.d/epel.repo &lt;&lt;<span class="string">'EOF'</span></span><br><span class="line">[epel]</span><br><span class="line">name=Extra Packages <span class="keyword">for</span> Enterprise Linux 7 - <span class="variable">$basearch</span></span><br><span class="line">baseurl=https://mirrors.tuna.tsinghua.edu.cn/epel/7/<span class="variable">$basearch</span></span><br><span class="line"><span class="comment">#mirrorlist=https://mirrors.fedoraproject.org/metalink?repo=epel-7&amp;arch=$basearch</span></span><br><span class="line">failovermethod=priority</span><br><span class="line">enabled=1</span><br><span class="line">gpgcheck=1</span><br><span class="line">gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-7</span><br><span class="line"></span><br><span class="line">[epel-debuginfo]</span><br><span class="line">name=Extra Packages <span class="keyword">for</span> Enterprise Linux 7 - <span class="variable">$basearch</span> - Debug</span><br><span class="line">baseurl=https://mirrors.tuna.tsinghua.edu.cn/epel/7/<span class="variable">$basearch</span>/debug</span><br><span class="line"><span class="comment">#mirrorlist=https://mirrors.fedoraproject.org/metalink?repo=epel-debug-7&amp;arch=$basearch</span></span><br><span class="line">failovermethod=priority</span><br><span class="line">enabled=0</span><br><span class="line">gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-7</span><br><span class="line">gpgcheck=1</span><br><span class="line"></span><br><span class="line">[epel-source]</span><br><span class="line">name=Extra Packages <span class="keyword">for</span> Enterprise Linux 7 - <span class="variable">$basearch</span> - Source</span><br><span class="line">baseurl=https://mirrors.tuna.tsinghua.edu.cn/epel/7/SRPMS</span><br><span class="line"><span class="comment">#mirrorlist=https://mirrors.fedoraproject.org/metalink?repo=epel-source-7&amp;arch=$basearch</span></span><br><span class="line">failovermethod=priority</span><br><span class="line">enabled=0</span><br><span class="line">gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-7</span><br><span class="line">gpgcheck=1</span><br><span class="line">EOF</span><br><span class="line"></span><br><span class="line">yum makecache</span><br><span class="line">yum install yum-plugin-priorities chrony sshpass ceph-deploy ceph -y</span><br><span class="line">mv /etc/chrony.conf /etc/chrony.conf.bk</span><br><span class="line"></span><br><span class="line"><span class="comment"># 添加时间同步服务器, 如果无法访问外网请自行搭建并修改</span></span><br><span class="line">cat &gt; /etc/chrony.conf &lt;&lt; EOF</span><br><span class="line">server ntp.api.bz iburst</span><br><span class="line">driftfile /var/lib/chrony/drift</span><br><span class="line">makestep 1.0 3</span><br><span class="line">rtcsync</span><br><span class="line">logdir /var/<span class="built_in">log</span>/chrony</span><br><span class="line">EOF</span><br><span class="line"></span><br><span class="line">systemctl <span class="built_in">enable</span> chronyd</span><br><span class="line">systemctl restart chronyd</span><br><span class="line">sleep 10</span><br><span class="line">chronyc activity</span><br><span class="line">chronyc sources -v</span><br><span class="line">hwclock -w</span><br><span class="line"></span><br><span class="line">rm -f <span class="string">"<span class="variable">$&#123;HOME&#125;</span>"</span>/.ssh/ceph_id_rsa</span><br><span class="line">ssh-keygen -t rsa -b 4096 -f <span class="string">"<span class="variable">$&#123;HOME&#125;</span>"</span>/.ssh/ceph_id_rsa -N <span class="string">''</span></span><br><span class="line">cat &gt;<span class="string">"<span class="variable">$&#123;HOME&#125;</span>"</span>/.ssh/config &lt;&lt;EOF</span><br><span class="line">Host storage-ha-1</span><br><span class="line">   Hostname storage-ha-1</span><br><span class="line">   User storage</span><br><span class="line">   IdentityFile <span class="variable">$&#123;HOME&#125;</span>/.ssh/ceph_id_rsa</span><br><span class="line">   IdentitiesOnly yes</span><br><span class="line">   StrictHostKeyChecking no</span><br><span class="line">Host storage-ha-2</span><br><span class="line">   Hostname storage-ha-2</span><br><span class="line">   User storage</span><br><span class="line">   IdentityFile <span class="variable">$&#123;HOME&#125;</span>/.ssh/ceph_id_rsa</span><br><span class="line">   IdentitiesOnly yes</span><br><span class="line">   StrictHostKeyChecking no</span><br><span class="line">Host storage-ha-3</span><br><span class="line">   Hostname storage-ha-3</span><br><span class="line">   User storage</span><br><span class="line">   IdentityFile <span class="variable">$&#123;HOME&#125;</span>/.ssh/ceph_id_rsa</span><br><span class="line">   IdentitiesOnly yes</span><br><span class="line">   StrictHostKeyChecking no</span><br><span class="line">EOF</span><br><span class="line">chmod 0400 <span class="string">"<span class="variable">$&#123;HOME&#125;</span>"</span>/.ssh/config</span><br><span class="line">sshpass -p <span class="string">"fullstackmemo***"</span> ssh-copy-id -i ~/.ssh/ceph_id_rsa storage@storage-ha-1</span><br><span class="line">sshpass -p <span class="string">"fullstackmemo***"</span> ssh-copy-id -i ~/.ssh/ceph_id_rsa storage@storage-ha-2</span><br><span class="line">sshpass -p <span class="string">"fullstackmemo***"</span> ssh-copy-id -i ~/.ssh/ceph_id_rsa storage@storage-ha-3</span><br><span class="line"></span><br><span class="line">mkdir -p <span class="string">"<span class="variable">$&#123;HOME&#125;</span>"</span>/ceph-cluster</span><br><span class="line"><span class="built_in">cd</span> <span class="string">"<span class="variable">$&#123;HOME&#125;</span>"</span>/ceph-cluster || <span class="built_in">exit</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>ceph-deploy.sh</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"></span><br><span class="line">mkdir -p <span class="string">"<span class="variable">$&#123;HOME&#125;</span>"</span>/ceph-cluster</span><br><span class="line"><span class="built_in">cd</span> <span class="string">"<span class="variable">$&#123;HOME&#125;</span>"</span>/ceph-cluster || <span class="built_in">exit</span></span><br><span class="line">ceph-deploy new storage-ha-1 storage-ha-2 storage-ha-3</span><br><span class="line"></span><br><span class="line">cat &gt;&gt;ceph.conf &lt;&lt;EOF</span><br><span class="line"><span class="comment"># 'public network':</span></span><br><span class="line"><span class="comment"># 整个集群所存在的网段</span></span><br><span class="line"><span class="comment"># 这里需要根据实际情况修改</span></span><br><span class="line">public network = 192.168.60.0/24</span><br><span class="line">osd pool default size = 3</span><br><span class="line">osd pool default min size = 2</span><br><span class="line">osd pool default pg num = 100</span><br><span class="line">osd pool default pgp num = 100</span><br><span class="line"><span class="comment"># 'mon allow pool delete': </span></span><br><span class="line"><span class="comment"># 此设置允许删除pool的操作, poc环境为方便操作加上此选项, 生产环境建议注释</span></span><br><span class="line">mon allow pool delete = <span class="literal">true</span></span><br><span class="line"></span><br><span class="line">[osd]</span><br><span class="line">osd_max_backfills = 1</span><br><span class="line">osd_recovery_max_active = 1</span><br><span class="line">osd_recovery_op_priority = 1</span><br><span class="line">EOF</span><br><span class="line"></span><br><span class="line"><span class="comment"># 在各个节点上安装ceph, 并指定了外网的ceph yum源, 如果无法访问外网请自行搭建并修改</span></span><br><span class="line">ceph-deploy install storage-ha-1 storage-ha-2 storage-ha-3 --repo-url http://mirrors.ustc.edu.cn/ceph/rpm-mimic/el7 --gpg-url <span class="string">'http://mirrors.ustc.edu.cn/ceph/keys/release.asc'</span></span><br><span class="line"><span class="comment"># 初始化mon服务和key信息</span></span><br><span class="line">ceph-deploy mon create-initial</span><br><span class="line">ceph-deploy mon add storage-ha-2</span><br><span class="line">ceph-deploy mon add storage-ha-3</span><br><span class="line">ceph-deploy admin storage-ha-1 storage-ha-2 storage-ha-3</span><br><span class="line">ceph-deploy mgr create storage-ha-1 storage-ha-2 storage-ha-3</span><br><span class="line"></span><br><span class="line"><span class="comment"># 添加存储服务节点上的裸盘到存储池中</span></span><br><span class="line">ceph-deploy osd create --data /dev/sdb storage-ha-1</span><br><span class="line">ceph-deploy osd create --data /dev/sdb storage-ha-2</span><br><span class="line">ceph-deploy osd create --data /dev/sdb storage-ha-3</span><br><span class="line"></span><br><span class="line">ceph-deploy mds create storage-ha-1 storage-ha-2 storage-ha-3</span><br><span class="line"></span><br><span class="line">ssh storage@storage-ha-1 &lt;&lt; EOF</span><br><span class="line"><span class="comment"># 创建两个pool, 服务于cephfs, cephfs至少需要两个pool, 分别做metadata和data</span></span><br><span class="line">sudo ceph osd pool create cephfs_data 100</span><br><span class="line"><span class="comment"># 使用raid 5方式存储数据即erasure类型, 当单个文件平均大小大于8k时erasure比replicated有优势.</span></span><br><span class="line"><span class="comment"># sudo ceph osd pool create cephfs_data 100 100 erasure</span></span><br><span class="line"><span class="comment"># sudo ceph osd pool set cephfs_data allow_ec_overwrites true</span></span><br><span class="line"><span class="comment"># sudo metadata pool必须使用replicated类型.</span></span><br><span class="line">sudo ceph osd pool create cephfs_metadata 100</span><br><span class="line"><span class="comment"># 如果使用了erasure类型, 此步骤跳过</span></span><br><span class="line">sudo ceph osd pool <span class="built_in">set</span> cephfs_data size 3</span><br><span class="line"></span><br><span class="line">sudo ceph osd pool <span class="built_in">set</span> cephfs_metadata size 3</span><br><span class="line">sudo ceph fs new cephfs cephfs_metadata cephfs_data</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看集群各项信息</span></span><br><span class="line">sudo ceph quorum_status --format json-pretty</span><br><span class="line">sudo ceph fs ls</span><br><span class="line">sudo ceph mds <span class="built_in">stat</span></span><br><span class="line">sudo ceph health</span><br><span class="line">sudo ceph -s</span><br><span class="line">EOF</span><br></pre></td></tr></table></figure>
+      
+    </div>
+
+    
+      
+
+
+    
+
+    
+    
+    
+
+    
+
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>x22x22</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://www.fullstackmemo.com/2018/10/11/cephfs-ha-mount-storage/" title="基于cephfs搭建高可用分布式存储并mount到本地">http://www.fullstackmemo.com/2018/10/11/cephfs-ha-mount-storage/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="external nofollow" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明出处！</li>
+</ul>
+
+      </div>
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/ceph/" rel="tag"># ceph</a>
+          
+            <a href="/tags/cephfs/" rel="tag"># cephfs</a>
+          
+            <a href="/tags/storage/" rel="tag"># storage</a>
+          
+            <a href="/tags/mount/" rel="tag"># mount</a>
+          
+            <a href="/tags/共享存储/" rel="tag"># 共享存储</a>
+          
+            <a href="/tags/存储/" rel="tag"># 存储</a>
+          
+            <a href="/tags/挂载/" rel="tag"># 挂载</a>
+          
+            <a href="/tags/本地存储/" rel="tag"># 本地存储</a>
+          
+            <a href="/tags/HA/" rel="tag"># HA</a>
+          
+            <a href="/tags/高可用/" rel="tag"># 高可用</a>
+          
+            <a href="/tags/yum/" rel="tag"># yum</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/07/24/offline-deploy-cdh5/" rel="next" title="离线部署CDH5集群">
+                <i class="fa fa-chevron-left"></i> 离线部署CDH5集群
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/01/10/standalone-docker-firewall-set/" rel="prev" title="CentOS 7单机Docker容器的Firewall安全设置">
+                CentOS 7单机Docker容器的Firewall安全设置 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+  
+    <div class="comments" id="comments">
+      
+        <div onclick="showGitment()" id="gitment-display-button">显示 Gitment 评论</div>
+        <div id="gitment-container" style="display:none"></div>
+      
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/images/lemon-violet.png" alt="x22x22">
+            
+              <p class="site-author-name" itemprop="name">x22x22</p>
+              <p class="site-description motion-element" itemprop="description">与开发相关的东西乱谈</p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives">
+                
+                    <span class="site-state-item-count">17</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  <a href="/categories/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">6</span>
+                    <span class="site-state-item-name">分类</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">77</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+            <div class="feed-link motion-element">
+              <a href="/atom.xml" rel="alternate">
+                <i class="fa fa-rss"></i>
+                RSS
+              </a>
+            </div>
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  <a href="https://github.com/fullstackmemo" target="_blank" title="GitHub" rel="external nofollow"><i class="fa fa-fw fa-github"></i></a>
+                  
+                </span>
+              
+                <span class="links-of-author-item">
+                  <a href="mailto:fullstackmemo@outlook.com" target="_blank" title="E-Mail" rel="external nofollow"><i class="fa fa-fw fa-envelope"></i></a>
+                  
+                </span>
+              
+                <span class="links-of-author-item">
+                  <a href="https://twitter.com/fullstackmemo" target="_blank" title="Twitter" rel="external nofollow"><i class="fa fa-fw fa-twitter"></i></a>
+                  
+                </span>
+              
+                <span class="links-of-author-item">
+                  <a href="https://www.facebook.com/fullstackmemo" target="_blank" title="FB Page" rel="external nofollow"><i class="fa fa-fw fa-facebook"></i></a>
+                  
+                </span>
+              
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#服务器硬件配置及环境"><span class="nav-number">1.</span> <span class="nav-text">服务器硬件配置及环境</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#节点部署图"><span class="nav-number">2.</span> <span class="nav-text">节点部署图</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#节点功能简介"><span class="nav-number">3.</span> <span class="nav-text">节点功能简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#默认端口"><span class="nav-number">4.</span> <span class="nav-text">默认端口</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#默认路径"><span class="nav-number">4.1.</span> <span class="nav-text">默认路径</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#部署脚本说明"><span class="nav-number">5.</span> <span class="nav-text">部署脚本说明</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#脚本运行命令"><span class="nav-number">6.</span> <span class="nav-text">脚本运行命令</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#挂载存储"><span class="nav-number">7.</span> <span class="nav-text">挂载存储</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#创建测试用户"><span class="nav-number">7.1.</span> <span class="nav-text">创建测试用户</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#获取用户授权信息"><span class="nav-number">7.2.</span> <span class="nav-text">获取用户授权信息</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#挂载方式"><span class="nav-number">7.3.</span> <span class="nav-text">挂载方式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#cephfs方式"><span class="nav-number">7.4.</span> <span class="nav-text">cephfs方式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#fuse方式"><span class="nav-number">7.5.</span> <span class="nav-text">fuse方式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#挂载结果"><span class="nav-number">7.6.</span> <span class="nav-text">挂载结果</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#运维命令"><span class="nav-number">8.</span> <span class="nav-text">运维命令</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#FAQ"><span class="nav-number">9.</span> <span class="nav-text">FAQ</span></a></li></ol><li class="nav-item nav-level-1"><a class="nav-link" href="#参考"><span class="nav-number"></span> <span class="nav-text">参考</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#脚本Git库"><span class="nav-number"></span> <span class="nav-text">脚本Git库</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#附录-脚本内容"><span class="nav-number">1.</span> <span class="nav-text">附录: 脚本内容</span></a></li></ol></li></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2018 &mdash; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate"> 
+    <i class="fa fa-x22x22"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">x22x22</span>
+
+  
+
+  
+</div>
+
+
+  
+
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" rel="external nofollow" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" rel="external nofollow" href="https://github.com/theme-next/hexo-theme-next">NexT.Mist</a> v6.1.0</div>
+
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv" title="总访客量">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+    </span>
+  
+
+  
+    <span class="site-pv" title="总访问量">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+
+        
+      </div>
+      <script>
+        window.addEventListener('message', function (e) {
+            if (e.origin !== 'https://runkit.com') return;
+            try {
+                var data = JSON.parse(e.data);
+            } catch (e) {
+                return false;
+            }
+            if (data.context !== 'iframe.resize') {
+                return false;
+            }
+            var iframe = document.querySelector('iframe[src="' + data.src + '"]');
+            if (!iframe) {
+                return false;
+            }
+            if (data.height) {
+                iframe.height = data.height;
+            }
+        });
+      </script>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+      <div id="needsharebutton-float">
+        <span class="btn">
+          <i class="fa fa-share-alt" aria-hidden="true"></i>
+        </span>
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/jquery/2.1.3/jquery.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/velocity/1.2.1/velocity.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/velocity/1.2.1/velocity.ui.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/reading_progress/reading_progress.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=6.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=6.1.0"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=6.1.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=6.1.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=6.1.0"></script>
+
+
+
+  
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+<!-- LOCAL: You can save these files to your site and update links -->
+    
+        
+        <link rel="stylesheet" href="https://jjeejj.github.io/css/gitment.css">
+        <script src="https://jjeejj.github.io/js/gitment.js"></script>
+    
+<!-- END LOCAL -->
+
+    
+
+    
+      <script type="text/javascript">
+      function renderGitment(){
+        var gitment = new Gitment({
+            id: window.location.pathname,
+            owner: 'fullstackmemo',
+            repo: 'gitment-comments',
+            
+            oauth: {
+            
+            
+                client_secret: '119cdc7c9d0cde4de212a4714b032d6b5286e317',
+            
+                client_id: 'e067397a2bce568d4556'
+            }});
+        gitment.render('gitment-container');
+      }
+
+      
+      function showGitment(){
+        document.getElementById("gitment-display-button").style.display = "none";
+        document.getElementById("gitment-container").style.display = "block";
+        renderGitment();
+      }
+      
+      </script>
+    
+
+
+
+
+
+
+  
+
+
+
+
+  
+  
+  
+    
+  
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/instantsearch.js@1/dist/instantsearch.min.css">
+
+  
+  
+    
+  
+  <script src="https://cdn.jsdelivr.net/npm/instantsearch.js@1/dist/instantsearch.js"></script>
+  
+
+  <script src="/js/src/algolia-search.js?v=6.1.0"></script>
+
+
+
+  
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+
+  
+  
+  
+  <script src="/lib/needsharebutton/needsharebutton.js"></script>
+
+  <script>
+    
+    
+      flOptions = {};
+      
+          flOptions.iconStyle = "default";
+      
+          flOptions.boxForm = "vertical";
+      
+          flOptions.position = "middleRight";
+      
+          flOptions.networks = "Weibo,Wechat,Douban,QQZone,Twitter,Facebook";
+      
+      new needShareButton('#needsharebutton-float', flOptions);
+    
+  </script>
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

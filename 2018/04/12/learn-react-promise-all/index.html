@@ -1,0 +1,1323 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+  
+  
+  <link rel="stylesheet" href="/lib/needsharebutton/needsharebutton.css">
+
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+  <link href="https://cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.min.css" rel="stylesheet" type="text/css">
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.loli.net/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+  
+
+<link href="https://cdn.bootcss.com/font-awesome/4.6.2/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=6.1.0" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/lemon-violet.png?v=6.1.0">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/lemon-violet.png?v=6.1.0">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/lemon-violet.png?v=6.1.0">
+
+
+  <link rel="mask-icon" href="/images/lemon.svg?v=6.1.0" color="#222">
+
+
+
+
+
+
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '6.1.0',
+    sidebar: {"position":"right","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    fastclick: true,
+    lazyload: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: 'TG4QHW2JND',
+      apiKey: 'eae9b05d48b25432570a208fffefe8d6',
+      indexName: 'blog',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="使用场景当一个页面的小面板或多个面板里需要调用很多接口, 并且要等待接口返回才渲染界面的时候就可以使promise.all Demo环境 前端 antd: 3.4.1 bluebird: 3.5.1 react: 16.3.1 react-dom: 16.3.1 react-scripts-ts: 2.14.0   后端 koa: 2.5.0 koa-router: 7.4.0    业务场景设定">
+<meta name="keywords" content="react,promise,promise.all,promise.resolve,antd,then,koa,koa2,koa router">
+<meta property="og:type" content="article">
+<meta property="og:title" content="利用promise.all基于react+antd+koa实现伪并发loading渲染数据">
+<meta property="og:url" content="http://www.fullstackmemo.com/2018/04/12/learn-react-promise-all/index.html">
+<meta property="og:site_name" content="Fullstack Memo">
+<meta property="og:description" content="使用场景当一个页面的小面板或多个面板里需要调用很多接口, 并且要等待接口返回才渲染界面的时候就可以使promise.all Demo环境 前端 antd: 3.4.1 bluebird: 3.5.1 react: 16.3.1 react-dom: 16.3.1 react-scripts-ts: 2.14.0   后端 koa: 2.5.0 koa-router: 7.4.0    业务场景设定">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://www.fullstackmemo.com/2018/04/12/learn-react-promise-all/loading.gif">
+<meta property="og:updated_time" content="2019-03-20T09:55:05.560Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="利用promise.all基于react+antd+koa实现伪并发loading渲染数据">
+<meta name="twitter:description" content="使用场景当一个页面的小面板或多个面板里需要调用很多接口, 并且要等待接口返回才渲染界面的时候就可以使promise.all Demo环境 前端 antd: 3.4.1 bluebird: 3.5.1 react: 16.3.1 react-dom: 16.3.1 react-scripts-ts: 2.14.0   后端 koa: 2.5.0 koa-router: 7.4.0    业务场景设定">
+<meta name="twitter:image" content="http://www.fullstackmemo.com/2018/04/12/learn-react-promise-all/loading.gif">
+
+
+
+  <link rel="alternate" href="/atom.xml" title="Fullstack Memo" type="application/atom+xml">
+
+
+
+
+  <link rel="canonical" href="http://www.fullstackmemo.com/2018/04/12/learn-react-promise-all/">
+
+
+
+<script type="text/javascript" id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>利用promise.all基于react+antd+koa实现伪并发loading渲染数据 | Fullstack Memo</title>
+  
+
+
+
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?77f5b6619b4e57a13348fafb653fda4e";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style type="text/css">
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion {
+      .logo-line-before i { left: initial; }
+      .logo-line-after i { right: initial; }
+    }
+  </style>
+</noscript>
+
+</head>
+
+<script>
+  function ishidden(odiv){
+    var vdiv = document.getElementById(odiv);
+    vdiv.style.display = (vdiv.style.display == 'none')?'block':'none';
+  }
+</script>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-right page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"> 
+
+<div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Fullstack Memo</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <h1 class="site-subtitle" itemprop="description">双引号的全栈备忘录</h1>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+          
+  <li class="menu-item menu-item-home">
+    <a href="/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+</li>
+
+      
+        
+        
+          
+  <li class="menu-item menu-item-tags">
+    <a href="/tags/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+</li>
+
+      
+        
+        
+          
+  <li class="menu-item menu-item-categories">
+    <a href="/categories/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+</li>
+
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+        </li>
+      
+    </ul>
+  
+
+  
+    
+
+    
+    
+      
+      
+    
+      
+      
+    
+      
+      
+    
+    
+
+  
+
+
+  
+
+  
+    <div class="site-search">
+      
+  
+  <div class="algolia-popup popup search-popup">
+    <div class="algolia-search">
+      <div class="algolia-search-input-icon">
+        <i class="fa fa-search"></i>
+      </div>
+      <div class="algolia-search-input" id="algolia-search-input"></div>
+    </div>
+
+    <div class="algolia-results">
+      <div id="algolia-stats"></div>
+      <div id="algolia-hits"></div>
+      <div id="algolia-pagination" class="algolia-pagination"></div>
+    </div>
+
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+  </div>
+
+
+
+
+    </div>
+  
+</nav>
+
+
+  
+
+
+
+ </div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+    <div class="reading-progress-bar"></div>
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://www.fullstackmemo.com/2018/04/12/learn-react-promise-all/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="x22x22">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/lemon-violet.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Fullstack Memo">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">利用promise.all基于react+antd+koa实现伪并发loading渲染数据</h2>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-04-12T12:18:34+08:00">2018-04-12</time>
+            
+
+            
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Frontend/" itemprop="url" rel="index"><span itemprop="name">前端</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="post-meta-item-icon">
+            <i class="fa fa-eye"></i>
+             阅读次数： 
+            <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>
+            </span>
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="使用场景"><a href="#使用场景" class="headerlink" title="使用场景"></a>使用场景</h1><p>当一个页面的小面板或多个面板里需要调用很多接口, 并且要等待接口返回才渲染界面的时候就可以使promise.all</p>
+<h1 id="Demo环境"><a href="#Demo环境" class="headerlink" title="Demo环境"></a>Demo环境</h1><ul>
+<li>前端<ul>
+<li>antd: 3.4.1</li>
+<li>bluebird: 3.5.1</li>
+<li>react: 16.3.1</li>
+<li>react-dom: 16.3.1</li>
+<li>react-scripts-ts: 2.14.0</li>
+</ul>
+</li>
+<li>后端<ul>
+<li>koa: 2.5.0</li>
+<li>koa-router: 7.4.0</li>
+</ul>
+</li>
+</ul>
+<h1 id="业务场景"><a href="#业务场景" class="headerlink" title="业务场景"></a>业务场景</h1><p>设定业务是一个持续交付系统, 里面有用户中心和任务中心和项目中心<br>现在希望在首页的仪表盘中展示当前用户概览, 角色概览, 任务概览和项目概览.<br>而这里的概览暂且仅仅是对各个中心的数据的统计, 并简单的以数字的方式展示出来.</p>
+<a id="more"></a>
+<h2 id="效果如图"><a href="#效果如图" class="headerlink" title="效果如图"></a>效果如图</h2><p><code>PS</code>: 此图做了快放处理, 实际上在面板的灰色loading过程需要等待3秒</p>
+<p><img src="/2018/04/12/learn-react-promise-all/loading.gif" alt="前端效果"></p>
+<h1 id="后端设计"><a href="#后端设计" class="headerlink" title="后端设计"></a>后端设计</h1><p>分别提供四个查询各个中心概览的接口</p>
+<ul>
+<li>用户中心概览: <code>/api/user-survey</code></li>
+<li>角色中心概览: <code>/api/role-survey</code></li>
+<li>任务中心概览: <code>/api/task-survey</code></li>
+<li>产品中心概览: <code>/api/project-survey</code></li>
+</ul>
+<p><code>PS</code>: <strong>后端代码中设定了角色中心的数据需要3秒才返回, 以此来模拟后端数据返回的延迟性</strong></p>
+<h1 id="前端设计"><a href="#前端设计" class="headerlink" title="前端设计"></a>前端设计</h1><p>需要实现以下接口请求逻辑和界面渲染规则</p>
+<ol>
+<li>在没有请求数据前且数据没有全部返回前, 界面有loading机制</li>
+<li>要求几乎同时查询四个接口的信息, 并且要等到四个接口的数据都有返回时才渲染数据界面</li>
+</ol>
+<p><code>PS</code>: <strong>第一个要求这里使用antd中的Card标签中的loading属性去完成.</strong></p>
+<h1 id="前端主要代码实现"><a href="#前端主要代码实现" class="headerlink" title="前端主要代码实现"></a>前端主要代码实现</h1><p>以下代码实现了前端需求, 具体实现请查看注释部分.</p>
+<p><code>文件: src/App.tsx</code></p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br><span class="line">190</span><br><span class="line">191</span><br><span class="line">192</span><br><span class="line">193</span><br><span class="line">194</span><br><span class="line">195</span><br><span class="line">196</span><br><span class="line">197</span><br><span class="line">198</span><br><span class="line">199</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> * <span class="keyword">as</span> Bluebird <span class="keyword">from</span> <span class="string">'bluebird'</span>;</span><br><span class="line"><span class="keyword">import</span> * <span class="keyword">as</span> React <span class="keyword">from</span> <span class="string">'react'</span>;</span><br><span class="line"><span class="keyword">import</span> <span class="string">'./App.css'</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> &#123; Card &#125; <span class="keyword">from</span> <span class="string">'antd'</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// interface部分相当于对对象的描述, 可以先不理会</span></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 用户概览数据定义</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">interface</span> UserData &#123;</span><br><span class="line">  enabled: <span class="built_in">number</span>;</span><br><span class="line">  sum: <span class="built_in">number</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 角色概览数据定义</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">interface</span> RoleData &#123;</span><br><span class="line">  bind: <span class="built_in">number</span>;</span><br><span class="line">  sum: <span class="built_in">number</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 任务概览数据定义</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">interface</span> TaskData &#123;</span><br><span class="line">  todo: <span class="built_in">number</span>;</span><br><span class="line">  sum: <span class="built_in">number</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 项目概览数据定义</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">interface</span> ProjectData &#123;</span><br><span class="line">  healthy: <span class="built_in">number</span>;</span><br><span class="line">  sum: <span class="built_in">number</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> logo = <span class="built_in">require</span>(<span class="string">'./logo.svg'</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> App <span class="keyword">extends</span> React.Component &#123;</span><br><span class="line">  <span class="comment">/**</span></span><br><span class="line"><span class="comment">   * 后端接口的根地址</span></span><br><span class="line"><span class="comment">   * 这里因为不使用webpack或nginx做代理跨域</span></span><br><span class="line"><span class="comment">   * 所以可临时这样写</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  <span class="keyword">public</span> apiRoot = <span class="string">'http://127.0.0.1:8088'</span>;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">public</span> gridStyle = &#123;</span><br><span class="line">    width: <span class="string">'25%'</span>,</span><br><span class="line">    textAlign: <span class="string">'center'</span></span><br><span class="line">  &#125; <span class="keyword">as</span> React.CSSProperties;</span><br><span class="line"></span><br><span class="line">  state = &#123;</span><br><span class="line">    loading: <span class="literal">true</span>,</span><br><span class="line">    userData: &#123; enabled: <span class="number">0</span>, sum: <span class="number">0</span> &#125; <span class="keyword">as</span> UserData,</span><br><span class="line">    roleData: &#123; bind: <span class="number">0</span>, sum: <span class="number">0</span> &#125; <span class="keyword">as</span> RoleData,</span><br><span class="line">    taskData: &#123; todo: <span class="number">0</span>, sum: <span class="number">0</span> &#125; <span class="keyword">as</span> TaskData,</span><br><span class="line">    projectData: &#123; healthy: <span class="number">0</span>, sum: <span class="number">0</span> &#125; <span class="keyword">as</span> ProjectData</span><br><span class="line">  &#125;;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/**</span></span><br><span class="line"><span class="comment">   * 简单封装一下fetch的get方法, 并且Promise化.</span></span><br><span class="line"><span class="comment">   * @param url api的后半部分url</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  <span class="keyword">public</span> getResBody(url: <span class="built_in">string</span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> Bluebird(<span class="function">(<span class="params">resolve, reject</span>) =&gt;</span> &#123;</span><br><span class="line">      fetch(<span class="keyword">this</span>.apiRoot + url).then(<span class="keyword">async</span> res =&gt; &#123;</span><br><span class="line">        <span class="comment">// 使用async/await方式避免then的调用</span></span><br><span class="line">        <span class="keyword">const</span> result = <span class="keyword">await</span> res.json();</span><br><span class="line">        <span class="keyword">if</span> (result.code === <span class="number">0</span>) &#123;</span><br><span class="line">          resolve(result.data);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">          resolve(&#123;&#125;);</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;);</span><br><span class="line">    &#125;);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/**</span></span><br><span class="line"><span class="comment">   * 简单封装一下fetch的get方法, 并且Promise化.</span></span><br><span class="line"><span class="comment">   * 此方法与new Bluebird方法比相对简洁</span></span><br><span class="line"><span class="comment">   * 因为到在我们的事例中是用不到reject的.</span></span><br><span class="line"><span class="comment">   * 一定要注意下面的return, 一个都不能少.</span></span><br><span class="line"><span class="comment">   * @param url api的后半部分url</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  <span class="keyword">public</span> getResBodyByResolve(url: <span class="built_in">string</span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> Bluebird.resolve(</span><br><span class="line">      fetch(<span class="keyword">this</span>.apiRoot + url).then(<span class="keyword">async</span> res =&gt; &#123;</span><br><span class="line">        <span class="comment">// 使用async/await方式避免then的调用</span></span><br><span class="line">        <span class="keyword">const</span> result = <span class="keyword">await</span> res.json();</span><br><span class="line">        <span class="keyword">if</span> (result.code === <span class="number">0</span>) &#123;</span><br><span class="line">          <span class="keyword">return</span> result.data;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">          <span class="keyword">return</span> &#123;&#125;;</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;)</span><br><span class="line">    );</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/**</span></span><br><span class="line"><span class="comment">   * 使用PromiseAll方法</span></span><br><span class="line"><span class="comment">   * 实现等待多个接口查询完毕后再显示Card的结果</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  <span class="keyword">public</span> getSurvey() &#123;</span><br><span class="line">    <span class="comment">// 这不用await的原因是因为await会阻塞这四个请求</span></span><br><span class="line">    <span class="comment">// 也就是说如果用await就需要前一个请求的接口得到结果之后才会请求下一个接口</span></span><br><span class="line">    <span class="comment">// 而使用PromiseAll就能按照请求书写顺序发送四个请求(非并发)</span></span><br><span class="line">    <span class="comment">// 并同时等待四个请求有了回复才进行下一步操作</span></span><br><span class="line">    <span class="comment">// 值得注意的是, 这里的四个请求的发起不是并发的</span></span><br><span class="line">    <span class="comment">// 但是每个请求都不需要等待上一个请求完毕后才执行下一个请求</span></span><br><span class="line">    <span class="keyword">const</span> userSurveyPro = <span class="keyword">this</span>.getResBody(<span class="string">'/api/user-survey'</span>);</span><br><span class="line">    <span class="keyword">const</span> roleSurveyPro = <span class="keyword">this</span>.getResBody(<span class="string">'/api/role-survey'</span>);</span><br><span class="line">    <span class="keyword">const</span> taskSurveyPro = <span class="keyword">this</span>.getResBody(<span class="string">'/api/task-survey'</span>);</span><br><span class="line">    <span class="keyword">const</span> projectSurveyPro = <span class="keyword">this</span>.getResBody(<span class="string">'/api/project-survey'</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// all方法里需要传入数组, 即使只传一个的时候也要包在数组里</span></span><br><span class="line">    <span class="comment">// 当然, 如果只传一个的话, 就不需要用all了</span></span><br><span class="line">    <span class="comment">// 传入数组里的对象必须为Promise对象</span></span><br><span class="line">    Bluebird.all([userSurveyPro, roleSurveyPro, taskSurveyPro, projectSurveyPro]).then(<span class="function"><span class="params">surveyList</span> =&gt;</span> &#123;</span><br><span class="line">      <span class="keyword">this</span>.setState(&#123;</span><br><span class="line">        userData: surveyList[<span class="number">0</span>],</span><br><span class="line">        roleData: surveyList[<span class="number">1</span>],</span><br><span class="line">        taskData: surveyList[<span class="number">2</span>],</span><br><span class="line">        projectData: surveyList[<span class="number">3</span>],</span><br><span class="line">        loading: <span class="literal">false</span></span><br><span class="line">      &#125;);</span><br><span class="line">    &#125;);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">public</span> getSurveyByResolve() &#123;</span><br><span class="line">    <span class="comment">// 这不用await的原因是因为await会阻塞这四个请求</span></span><br><span class="line">    <span class="comment">// 也就是说如果用await就需要前一个请求的接口得到结果之后才会请求下一个接口</span></span><br><span class="line">    <span class="comment">// 而使用PromiseAll就能按照请求书写顺序发送四个请求(非并发)</span></span><br><span class="line">    <span class="comment">// 并同时等待四个请求有了回复才进行下一步操作</span></span><br><span class="line">    <span class="comment">// 值得注意的是, 这里的四个请求的发起不是并发的</span></span><br><span class="line">    <span class="comment">// 但是每个请求都不需要等待上一个请求完毕后才执行下一个请求</span></span><br><span class="line">    <span class="keyword">const</span> userSurveyPro = <span class="keyword">this</span>.getResBodyByResolve(<span class="string">'/api/user-survey'</span>);</span><br><span class="line">    <span class="keyword">const</span> roleSurveyPro = <span class="keyword">this</span>.getResBodyByResolve(<span class="string">'/api/role-survey'</span>);</span><br><span class="line">    <span class="keyword">const</span> taskSurveyPro = <span class="keyword">this</span>.getResBodyByResolve(<span class="string">'/api/task-survey'</span>);</span><br><span class="line">    <span class="keyword">const</span> projectSurveyPro = <span class="keyword">this</span>.getResBodyByResolve(<span class="string">'/api/project-survey'</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// all方法里需要传入数组, 即使只传一个的时候也要包在数组里</span></span><br><span class="line">    <span class="comment">// 当然, 如果只传一个的话, 就不需要用all了</span></span><br><span class="line">    <span class="comment">// 传入数组里的对象必须为Promise对象</span></span><br><span class="line">    Bluebird.all([userSurveyPro, roleSurveyPro, taskSurveyPro, projectSurveyPro]).then(<span class="function"><span class="params">surveyList</span> =&gt;</span> &#123;</span><br><span class="line">      <span class="keyword">this</span>.setState(&#123;</span><br><span class="line">        userData: surveyList[<span class="number">0</span>],</span><br><span class="line">        roleData: surveyList[<span class="number">1</span>],</span><br><span class="line">        taskData: surveyList[<span class="number">2</span>],</span><br><span class="line">        projectData: surveyList[<span class="number">3</span>],</span><br><span class="line">        loading: <span class="literal">false</span></span><br><span class="line">      &#125;);</span><br><span class="line">    &#125;);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  componentDidMount() &#123;</span><br><span class="line">    <span class="keyword">this</span>.getSurvey();</span><br><span class="line">    <span class="comment">// 此方法仅是上面方法的简洁版</span></span><br><span class="line">    <span class="comment">// this.getSurveyByResolve();</span></span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  render() &#123;</span><br><span class="line">    <span class="keyword">const</span> &#123; loading, userData, roleData, taskData, projectData &#125; = <span class="keyword">this</span>.state;</span><br><span class="line">    <span class="keyword">return</span> (</span><br><span class="line">      &lt;div className=<span class="string">"App"</span>&gt;</span><br><span class="line">        &lt;header className=<span class="string">"App-header"</span>&gt;</span><br><span class="line">          &lt;img src=&#123;logo&#125; className=<span class="string">"App-logo"</span> alt=<span class="string">"logo"</span> /&gt;</span><br><span class="line">          &lt;h1 className=<span class="string">"App-title"</span>&gt;欢迎来到<span class="built_in">Promise</span>.all的学习Demo&lt;<span class="regexp">/h1&gt;</span></span><br><span class="line"><span class="regexp">        &lt;/</span>header&gt;</span><br><span class="line">        &lt;Card title=<span class="string">"概览仪表盘"</span> loading=&#123;loading&#125;&gt;</span><br><span class="line">          &lt;Card.Grid style=&#123;<span class="keyword">this</span>.gridStyle&#125;&gt;</span><br><span class="line">            &lt;h3&gt;用户概览&lt;<span class="regexp">/h3&gt;</span></span><br><span class="line"><span class="regexp">            启用数: &#123;userData.enabled&#125; &lt;br /</span>&gt;</span><br><span class="line">            总数: &#123;userData.sum&#125;</span><br><span class="line">          &lt;<span class="regexp">/Card.Grid&gt;</span></span><br><span class="line"><span class="regexp">          &lt;Card.Grid style=&#123;this.gridStyle&#125;&gt;</span></span><br><span class="line"><span class="regexp">            &lt;h3&gt;角色概览&lt;/</span>h3&gt;</span><br><span class="line">            被绑定数: &#123;roleData.bind&#125; &lt;br /&gt;</span><br><span class="line">            总数: &#123;roleData.sum&#125;</span><br><span class="line">          &lt;<span class="regexp">/Card.Grid&gt;</span></span><br><span class="line"><span class="regexp">          &lt;Card.Grid style=&#123;this.gridStyle&#125;&gt;</span></span><br><span class="line"><span class="regexp">            &lt;h3&gt;任务概览&lt;/</span>h3&gt;</span><br><span class="line">            未完成数: &#123;taskData.todo&#125; &lt;br /&gt;</span><br><span class="line">            总数: &#123;taskData.sum&#125;</span><br><span class="line">          &lt;<span class="regexp">/Card.Grid&gt;</span></span><br><span class="line"><span class="regexp">          &lt;Card.Grid style=&#123;this.gridStyle&#125;&gt;</span></span><br><span class="line"><span class="regexp">            &lt;h3&gt;项目概览&lt;/</span>h3&gt;</span><br><span class="line">            健康数: &#123;projectData.healthy&#125; &lt;br /&gt;</span><br><span class="line">            总数: &#123;projectData.sum&#125;</span><br><span class="line">          &lt;<span class="regexp">/Card.Grid&gt;</span></span><br><span class="line"><span class="regexp">        &lt;/</span>Card&gt;</span><br><span class="line">      &lt;<span class="regexp">/div&gt;</span></span><br><span class="line"><span class="regexp">    );</span></span><br><span class="line"><span class="regexp">  &#125;</span></span><br><span class="line"><span class="regexp">&#125;</span></span><br><span class="line"><span class="regexp"></span></span><br><span class="line"><span class="regexp">export default App;</span></span><br></pre></td></tr></table></figure>
+<h1 id="前后端Demo完全源码"><a href="#前后端Demo完全源码" class="headerlink" title="前后端Demo完全源码"></a>前后端Demo完全源码</h1><ul>
+<li><a href="https://github.com/FULLSTACKMEMO/learnReactPromiseAll" target="_blank" rel="noopener">GitHub</a></li>
+</ul>
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><ul>
+<li><a href="https://ant.design/docs/react/use-in-typescript-cn" target="_blank" rel="noopener">antd</a></li>
+<li><a href="http://bluebirdjs.com/docs/api/promise.all.html" target="_blank" rel="noopener">bluebirdjs</a></li>
+<li><a href="http://koajs.com/" target="_blank" rel="noopener">koajs</a></li>
+<li><a href="https://github.com/alexmingoia/koa-router" target="_blank" rel="noopener">koa router</a></li>
+</ul>
+
+      
+    </div>
+
+    
+      
+
+
+    
+
+    
+    
+    
+
+    
+
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>x22x22</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://www.fullstackmemo.com/2018/04/12/learn-react-promise-all/" title="利用promise.all基于react+antd+koa实现伪并发loading渲染数据">http://www.fullstackmemo.com/2018/04/12/learn-react-promise-all/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="external nofollow" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明出处！</li>
+</ul>
+
+      </div>
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/react/" rel="tag"># react</a>
+          
+            <a href="/tags/promise/" rel="tag"># promise</a>
+          
+            <a href="/tags/promise-all/" rel="tag"># promise.all</a>
+          
+            <a href="/tags/promise-resolve/" rel="tag"># promise.resolve</a>
+          
+            <a href="/tags/antd/" rel="tag"># antd</a>
+          
+            <a href="/tags/then/" rel="tag"># then</a>
+          
+            <a href="/tags/koa/" rel="tag"># koa</a>
+          
+            <a href="/tags/koa2/" rel="tag"># koa2</a>
+          
+            <a href="/tags/koa-router/" rel="tag"># koa router</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/04/03/360-bash-lags/" rel="next" title="360安全卫士进程防护导致git-bash系列启动和回车非常慢">
+                <i class="fa fa-chevron-left"></i> 360安全卫士进程防护导致git-bash系列启动和回车非常慢
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/05/10/openssl-gen-https-self-signed-cer/" rel="prev" title="使用openssl生成X.509v3版https自签名证书">
+                使用openssl生成X.509v3版https自签名证书 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+  
+    <div class="comments" id="comments">
+      
+        <div onclick="showGitment()" id="gitment-display-button">显示 Gitment 评论</div>
+        <div id="gitment-container" style="display:none"></div>
+      
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/images/lemon-violet.png" alt="x22x22">
+            
+              <p class="site-author-name" itemprop="name">x22x22</p>
+              <p class="site-description motion-element" itemprop="description">与开发相关的东西乱谈</p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives">
+                
+                    <span class="site-state-item-count">17</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  <a href="/categories/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">6</span>
+                    <span class="site-state-item-name">分类</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">77</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+            <div class="feed-link motion-element">
+              <a href="/atom.xml" rel="alternate">
+                <i class="fa fa-rss"></i>
+                RSS
+              </a>
+            </div>
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  <a href="https://github.com/fullstackmemo" target="_blank" title="GitHub" rel="external nofollow"><i class="fa fa-fw fa-github"></i></a>
+                  
+                </span>
+              
+                <span class="links-of-author-item">
+                  <a href="mailto:fullstackmemo@outlook.com" target="_blank" title="E-Mail" rel="external nofollow"><i class="fa fa-fw fa-envelope"></i></a>
+                  
+                </span>
+              
+                <span class="links-of-author-item">
+                  <a href="https://twitter.com/fullstackmemo" target="_blank" title="Twitter" rel="external nofollow"><i class="fa fa-fw fa-twitter"></i></a>
+                  
+                </span>
+              
+                <span class="links-of-author-item">
+                  <a href="https://www.facebook.com/fullstackmemo" target="_blank" title="FB Page" rel="external nofollow"><i class="fa fa-fw fa-facebook"></i></a>
+                  
+                </span>
+              
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#使用场景"><span class="nav-number">1.</span> <span class="nav-text">使用场景</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Demo环境"><span class="nav-number">2.</span> <span class="nav-text">Demo环境</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#业务场景"><span class="nav-number">3.</span> <span class="nav-text">业务场景</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#效果如图"><span class="nav-number">3.1.</span> <span class="nav-text">效果如图</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#后端设计"><span class="nav-number">4.</span> <span class="nav-text">后端设计</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#前端设计"><span class="nav-number">5.</span> <span class="nav-text">前端设计</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#前端主要代码实现"><span class="nav-number">6.</span> <span class="nav-text">前端主要代码实现</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#前后端Demo完全源码"><span class="nav-number">7.</span> <span class="nav-text">前后端Demo完全源码</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考"><span class="nav-number">8.</span> <span class="nav-text">参考</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2018 &mdash; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate"> 
+    <i class="fa fa-x22x22"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">x22x22</span>
+
+  
+
+  
+</div>
+
+
+  
+
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" rel="external nofollow" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" rel="external nofollow" href="https://github.com/theme-next/hexo-theme-next">NexT.Mist</a> v6.1.0</div>
+
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv" title="总访客量">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+    </span>
+  
+
+  
+    <span class="site-pv" title="总访问量">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+
+        
+      </div>
+      <script>
+        window.addEventListener('message', function (e) {
+            if (e.origin !== 'https://runkit.com') return;
+            try {
+                var data = JSON.parse(e.data);
+            } catch (e) {
+                return false;
+            }
+            if (data.context !== 'iframe.resize') {
+                return false;
+            }
+            var iframe = document.querySelector('iframe[src="' + data.src + '"]');
+            if (!iframe) {
+                return false;
+            }
+            if (data.height) {
+                iframe.height = data.height;
+            }
+        });
+      </script>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+      <div id="needsharebutton-float">
+        <span class="btn">
+          <i class="fa fa-share-alt" aria-hidden="true"></i>
+        </span>
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/jquery/2.1.3/jquery.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/velocity/1.2.1/velocity.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/velocity/1.2.1/velocity.ui.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/reading_progress/reading_progress.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=6.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=6.1.0"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=6.1.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=6.1.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=6.1.0"></script>
+
+
+
+  
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+<!-- LOCAL: You can save these files to your site and update links -->
+    
+        
+        <link rel="stylesheet" href="https://jjeejj.github.io/css/gitment.css">
+        <script src="https://jjeejj.github.io/js/gitment.js"></script>
+    
+<!-- END LOCAL -->
+
+    
+
+    
+      <script type="text/javascript">
+      function renderGitment(){
+        var gitment = new Gitment({
+            id: window.location.pathname,
+            owner: 'fullstackmemo',
+            repo: 'gitment-comments',
+            
+            oauth: {
+            
+            
+                client_secret: '119cdc7c9d0cde4de212a4714b032d6b5286e317',
+            
+                client_id: 'e067397a2bce568d4556'
+            }});
+        gitment.render('gitment-container');
+      }
+
+      
+      function showGitment(){
+        document.getElementById("gitment-display-button").style.display = "none";
+        document.getElementById("gitment-container").style.display = "block";
+        renderGitment();
+      }
+      
+      </script>
+    
+
+
+
+
+
+
+  
+
+
+
+
+  
+  
+  
+    
+  
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/instantsearch.js@1/dist/instantsearch.min.css">
+
+  
+  
+    
+  
+  <script src="https://cdn.jsdelivr.net/npm/instantsearch.js@1/dist/instantsearch.js"></script>
+  
+
+  <script src="/js/src/algolia-search.js?v=6.1.0"></script>
+
+
+
+  
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+
+  
+  
+  
+  <script src="/lib/needsharebutton/needsharebutton.js"></script>
+
+  <script>
+    
+    
+      flOptions = {};
+      
+          flOptions.iconStyle = "default";
+      
+          flOptions.boxForm = "vertical";
+      
+          flOptions.position = "middleRight";
+      
+          flOptions.networks = "Weibo,Wechat,Douban,QQZone,Twitter,Facebook";
+      
+      new needShareButton('#needsharebutton-float', flOptions);
+    
+  </script>
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

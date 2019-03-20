@@ -1,0 +1,696 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>Fullstack Memo</title>
+  
+  <subtitle>双引号的全栈备忘录</subtitle>
+  <link href="/atom.xml" rel="self"/>
+  
+  <link href="http://www.fullstackmemo.com/"/>
+  <updated>2019-03-20T09:55:05.592Z</updated>
+  <id>http://www.fullstackmemo.com/</id>
+  
+  <author>
+    <name>x22x22</name>
+    
+  </author>
+  
+  <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>React中使用Mobx笔记</title>
+    <link href="http://www.fullstackmemo.com/2019/03/20/react-mobx-note/"/>
+    <id>http://www.fullstackmemo.com/2019/03/20/react-mobx-note/</id>
+    <published>2019-03-20T09:52:40.000Z</published>
+    <updated>2019-03-20T09:55:05.592Z</updated>
+    
+    <summary type="html">
+    
+      &lt;h2 id=&quot;参考资料&quot;&gt;&lt;a href=&quot;#参考资料&quot; class=&quot;headerlink&quot; title=&quot;参考资料&quot;&gt;&lt;/a&gt;参考资料&lt;/h2&gt;&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://github.com/mobxjs/mobx&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;Mobx官网&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://cn.mobx.js.org/&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;Mobx官网中文文档&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://brooch.me/2016/11/23/MobX-simple-entry-1/&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;MobX入坑指南(1)&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://brooch.me/2016/11/29/MobX-simple-entry-2/&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;MobX入坑指南(2) – action&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://brooch.me/2016/12/09/MobX-simple-entry-3/&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;MobX入坑指南(3) – Observable Types&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://brooch.me/2016/12/16/MobX-simple-entry-4/&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;MobX入坑指南(4) – Utility functions&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://xdlrt.github.io/2017/07/24/2017-07-24/&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;高性能 MobX 模式（part 2）- 响应变化&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://xdlrt.github.io/2017/07/30/2017-07-30/&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;高性能 MobX 模式（part 3）- 用例教程&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://www.jianshu.com/p/505d9d9fe36a&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;Mobx使用详解&lt;/a&gt; - Github中有例子&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://foio.github.io/mobx-react/&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;使用mobx开发高性能react应用&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://github.com/tinylog/tinylog-ui&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;React结合TypeScript和Mobx初体验&lt;/a&gt; - Github中有例子&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&quot;总结&quot;&gt;&lt;a href=&quot;#总结&quot; class=&quot;headerlink&quot; title=&quot;总结&quot;&gt;&lt;/a&gt;总结&lt;/h2&gt;
+    
+    </summary>
+    
+      <category term="前端" scheme="http://www.fullstackmemo.com/categories/Frontend/"/>
+    
+    
+      <category term="react" scheme="http://www.fullstackmemo.com/tags/react/"/>
+    
+      <category term="mobx" scheme="http://www.fullstackmemo.com/tags/mobx/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>部署zookeeper+kafka集群并开启基于DIGEST-MD5的SASL-SSL身份认证</title>
+    <link href="http://www.fullstackmemo.com/2019/01/21/deploy-zookeeper-clu/"/>
+    <id>http://www.fullstackmemo.com/2019/01/21/deploy-zookeeper-clu/</id>
+    <published>2019-01-21T05:23:09.000Z</published>
+    <updated>2019-03-20T09:55:05.420Z</updated>
+    
+    <summary type="html">
+    
+      &lt;h2 id=&quot;对比&quot;&gt;&lt;a href=&quot;#对比&quot; class=&quot;headerlink&quot; title=&quot;对比&quot;&gt;&lt;/a&gt;对比&lt;/h2&gt;&lt;p&gt;因为3.5.x还是beat版, 所以这里简单在3.4.x和3.5.x之间进行了安全相关的对比:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;3.5.0支持Jetty(The AdminServer), 以此来替代四字命令并不复用zookeeper的通信端口, 而是默认使用8080端口, 这样可以针对此端口做防火墙设置或nginx代理认证等&lt;/li&gt;
+&lt;li&gt;3.5.3添加4lw.commands.whitelist参数, 默认不做任何配置可以禁用四字命令, 防止匿名访问zookeeper信息&lt;/li&gt;
+&lt;li&gt;3.5.0支持使用secureClientPort开启ssl端口让客户端与服务器通讯&lt;/li&gt;
+&lt;/ol&gt;
+    
+    </summary>
+    
+      <category term="运维" scheme="http://www.fullstackmemo.com/categories/OPS/"/>
+    
+    
+      <category term="zookeeper" scheme="http://www.fullstackmemo.com/tags/zookeeper/"/>
+    
+      <category term="kafka" scheme="http://www.fullstackmemo.com/tags/kafka/"/>
+    
+      <category term="集群" scheme="http://www.fullstackmemo.com/tags/%E9%9B%86%E7%BE%A4/"/>
+    
+      <category term="DIGEST-MD5" scheme="http://www.fullstackmemo.com/tags/DIGEST-MD5/"/>
+    
+      <category term="SASL-SSL" scheme="http://www.fullstackmemo.com/tags/SASL-SSL/"/>
+    
+      <category term="身份认证" scheme="http://www.fullstackmemo.com/tags/%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>通过Docker部署Elasticsearch时开启SSL/TLS加密通讯</title>
+    <link href="http://www.fullstackmemo.com/2019/01/14/deploy-ssl-es-docker/"/>
+    <id>http://www.fullstackmemo.com/2019/01/14/deploy-ssl-es-docker/</id>
+    <published>2019-01-14T05:31:06.000Z</published>
+    <updated>2019-03-20T09:55:05.420Z</updated>
+    
+    <summary type="html">
+    
+      &lt;h2 id=&quot;前言&quot;&gt;&lt;a href=&quot;#前言&quot; class=&quot;headerlink&quot; title=&quot;前言&quot;&gt;&lt;/a&gt;前言&lt;/h2&gt;&lt;p&gt;在生产环境中部署docker需要开启加密通讯, 这样可以保障ES各个组件直接通讯的安全性&lt;/p&gt;
+&lt;h2 id=&quot;环境&quot;&gt;&lt;a href=&quot;#环境&quot; class=&quot;headerlink&quot; title=&quot;环境&quot;&gt;&lt;/a&gt;环境&lt;/h2&gt;&lt;p&gt;&lt;strong&gt;&lt;em&gt;说明&lt;/em&gt;&lt;/strong&gt;: 本部署基于Windows的linux版docker, 如果是在linux docker下部署, 仅需要安装docker-ce与docker-compose&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;项目&lt;/th&gt;
+&lt;th&gt;说明&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;宿主机系统&lt;/td&gt;
+&lt;td&gt;Windows 10&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;虚拟机系统&lt;/td&gt;
+&lt;td&gt;Boot2Docker 18.09.1&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;docker&lt;/td&gt;
+&lt;td&gt;18.09.0&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;docker-compose&lt;/td&gt;
+&lt;td&gt;1.23.2&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;ES容器IP&lt;/td&gt;
+&lt;td&gt;192.168.28.60&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;git&lt;/td&gt;
+&lt;td&gt;2.20.1-64-bit&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+    
+    </summary>
+    
+      <category term="运维" scheme="http://www.fullstackmemo.com/categories/OPS/"/>
+    
+      <category term="大数据" scheme="http://www.fullstackmemo.com/categories/OPS/%E5%A4%A7%E6%95%B0%E6%8D%AE/"/>
+    
+    
+      <category term="docker" scheme="http://www.fullstackmemo.com/tags/docker/"/>
+    
+      <category term="es" scheme="http://www.fullstackmemo.com/tags/es/"/>
+    
+      <category term="Elasticsearch" scheme="http://www.fullstackmemo.com/tags/Elasticsearch/"/>
+    
+      <category term="加密" scheme="http://www.fullstackmemo.com/tags/%E5%8A%A0%E5%AF%86/"/>
+    
+      <category term="SSL" scheme="http://www.fullstackmemo.com/tags/SSL/"/>
+    
+      <category term="TLS" scheme="http://www.fullstackmemo.com/tags/TLS/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>CentOS 7单机Docker容器的Firewall安全设置</title>
+    <link href="http://www.fullstackmemo.com/2019/01/10/standalone-docker-firewall-set/"/>
+    <id>http://www.fullstackmemo.com/2019/01/10/standalone-docker-firewall-set/</id>
+    <published>2019-01-10T08:30:17.000Z</published>
+    <updated>2019-03-20T09:55:05.592Z</updated>
+    
+    <summary type="html">
+    
+      &lt;h2 id=&quot;背景说明&quot;&gt;&lt;a href=&quot;#背景说明&quot; class=&quot;headerlink&quot; title=&quot;背景说明&quot;&gt;&lt;/a&gt;背景说明&lt;/h2&gt;&lt;p&gt;生产环境有可能出现从传统虚机转容器化的过渡期.&lt;br&gt;其中可能会经历先使用单机docker试运行业务的情况, 这样就还没用到k8s&lt;br&gt;那么就需要对docker的端口做访问策略来加强安全性.&lt;br&gt;默认情况下, docker启动后参数中如果加了端口映射, 就会自动将端口开放给所有网络设备访问,&lt;br&gt;并且这种情况下即使在本机的系统防火墙中加规则也无效, 因为docker会自动添加一个优先级最高的针对这个映射端口全开放规则,&lt;br&gt;这样就需要在docker启动时添加参数来禁止docker对本机防火墙的操作.&lt;/p&gt;
+    
+    </summary>
+    
+      <category term="运维" scheme="http://www.fullstackmemo.com/categories/OPS/"/>
+    
+    
+      <category term="CentOS 7" scheme="http://www.fullstackmemo.com/tags/CentOS-7/"/>
+    
+      <category term="Docker" scheme="http://www.fullstackmemo.com/tags/Docker/"/>
+    
+      <category term="Firewall" scheme="http://www.fullstackmemo.com/tags/Firewall/"/>
+    
+      <category term="Firewalld" scheme="http://www.fullstackmemo.com/tags/Firewalld/"/>
+    
+      <category term="安全" scheme="http://www.fullstackmemo.com/tags/%E5%AE%89%E5%85%A8/"/>
+    
+      <category term="容器" scheme="http://www.fullstackmemo.com/tags/%E5%AE%B9%E5%99%A8/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>基于cephfs搭建高可用分布式存储并mount到本地</title>
+    <link href="http://www.fullstackmemo.com/2018/10/11/cephfs-ha-mount-storage/"/>
+    <id>http://www.fullstackmemo.com/2018/10/11/cephfs-ha-mount-storage/</id>
+    <published>2018-10-11T10:38:15.000Z</published>
+    <updated>2019-03-20T09:55:05.416Z</updated>
+    
+    <summary type="html">
+    
+      &lt;h2 id=&quot;服务器硬件配置及环境&quot;&gt;&lt;a href=&quot;#服务器硬件配置及环境&quot; class=&quot;headerlink&quot; title=&quot;服务器硬件配置及环境&quot;&gt;&lt;/a&gt;服务器硬件配置及环境&lt;/h2&gt;&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;项目&lt;/th&gt;
+&lt;th&gt;说明&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;CPU&lt;/td&gt;
+&lt;td&gt;1核&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;内存&lt;/td&gt;
+&lt;td&gt;1GB&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;硬盘&lt;/td&gt;
+&lt;td&gt;40GB&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;系统&lt;/td&gt;
+&lt;td&gt;CentOS 7.5&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;时间同步服务&lt;/td&gt;
+&lt;td&gt;chrony&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;ceph&lt;/td&gt;
+&lt;td&gt;13.2.2-0&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h2 id=&quot;节点部署图&quot;&gt;&lt;a href=&quot;#节点部署图&quot; class=&quot;headerlink&quot; title=&quot;节点部署图&quot;&gt;&lt;/a&gt;节点部署图&lt;/h2&gt;&lt;p&gt;&lt;img src=&quot;/2018/10/11/cephfs-ha-mount-storage/server-framework.png&quot; alt=&quot;节点部署图&quot;&gt;&lt;/p&gt;
+    
+    </summary>
+    
+      <category term="存储" scheme="http://www.fullstackmemo.com/categories/%E5%AD%98%E5%82%A8/"/>
+    
+    
+      <category term="ceph" scheme="http://www.fullstackmemo.com/tags/ceph/"/>
+    
+      <category term="cephfs" scheme="http://www.fullstackmemo.com/tags/cephfs/"/>
+    
+      <category term="storage" scheme="http://www.fullstackmemo.com/tags/storage/"/>
+    
+      <category term="mount" scheme="http://www.fullstackmemo.com/tags/mount/"/>
+    
+      <category term="共享存储" scheme="http://www.fullstackmemo.com/tags/%E5%85%B1%E4%BA%AB%E5%AD%98%E5%82%A8/"/>
+    
+      <category term="存储" scheme="http://www.fullstackmemo.com/tags/%E5%AD%98%E5%82%A8/"/>
+    
+      <category term="挂载" scheme="http://www.fullstackmemo.com/tags/%E6%8C%82%E8%BD%BD/"/>
+    
+      <category term="本地存储" scheme="http://www.fullstackmemo.com/tags/%E6%9C%AC%E5%9C%B0%E5%AD%98%E5%82%A8/"/>
+    
+      <category term="HA" scheme="http://www.fullstackmemo.com/tags/HA/"/>
+    
+      <category term="高可用" scheme="http://www.fullstackmemo.com/tags/%E9%AB%98%E5%8F%AF%E7%94%A8/"/>
+    
+      <category term="yum" scheme="http://www.fullstackmemo.com/tags/yum/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>离线部署CDH5集群</title>
+    <link href="http://www.fullstackmemo.com/2018/07/24/offline-deploy-cdh5/"/>
+    <id>http://www.fullstackmemo.com/2018/07/24/offline-deploy-cdh5/</id>
+    <published>2018-07-24T06:08:06.000Z</published>
+    <updated>2019-03-20T09:55:05.564Z</updated>
+    
+    <summary type="html">
+    
+      &lt;h2 id=&quot;服务器拓扑图&quot;&gt;&lt;a href=&quot;#服务器拓扑图&quot; class=&quot;headerlink&quot; title=&quot;服务器拓扑图&quot;&gt;&lt;/a&gt;服务器拓扑图&lt;/h2&gt;&lt;p&gt;&lt;img src=&quot;/2018/07/24/offline-deploy-cdh5/server_topology.png&quot; alt=&quot;服务器拓扑图&quot;&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;FQDN&lt;/li&gt;
+&lt;/ul&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;FQDN&lt;/th&gt;
+&lt;th&gt;IP&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;repo-1.cdh.lab&lt;/td&gt;
+&lt;td&gt;192.168.60.110&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;cm-1.cdh.lab&lt;/td&gt;
+&lt;td&gt;192.168.60.111&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;master-1.cdh.lab&lt;/td&gt;
+&lt;td&gt;192.168.60.112&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;work-1.cdh.lab&lt;/td&gt;
+&lt;td&gt;192.168.60.113&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;work-2.cdh.lab&lt;/td&gt;
+&lt;td&gt;192.168.60.114&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+    
+    </summary>
+    
+      <category term="大数据" scheme="http://www.fullstackmemo.com/categories/%E5%A4%A7%E6%95%B0%E6%8D%AE/"/>
+    
+    
+      <category term="cdh" scheme="http://www.fullstackmemo.com/tags/cdh/"/>
+    
+      <category term="bigdata" scheme="http://www.fullstackmemo.com/tags/bigdata/"/>
+    
+      <category term="hadoop" scheme="http://www.fullstackmemo.com/tags/hadoop/"/>
+    
+      <category term="cloudera" scheme="http://www.fullstackmemo.com/tags/cloudera/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>搭建CDH离线仓库</title>
+    <link href="http://www.fullstackmemo.com/2018/07/24/build-offline-cdh-repo/"/>
+    <id>http://www.fullstackmemo.com/2018/07/24/build-offline-cdh-repo/</id>
+    <published>2018-07-24T05:29:09.000Z</published>
+    <updated>2019-03-20T09:55:05.416Z</updated>
+    
+    <summary type="html">
+    
+      &lt;h2 id=&quot;服务器硬件配置及环境&quot;&gt;&lt;a href=&quot;#服务器硬件配置及环境&quot; class=&quot;headerlink&quot; title=&quot;服务器硬件配置及环境&quot;&gt;&lt;/a&gt;服务器硬件配置及环境&lt;/h2&gt;&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;项目&lt;/th&gt;
+&lt;th&gt;说明&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;CPU&lt;/td&gt;
+&lt;td&gt;1核&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;内存&lt;/td&gt;
+&lt;td&gt;1GB&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;硬盘&lt;/td&gt;
+&lt;td&gt;40GB&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;系统&lt;/td&gt;
+&lt;td&gt;CentOS 7.5&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;时间同步服务&lt;/td&gt;
+&lt;td&gt;chrony&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;WEB服务&lt;/td&gt;
+&lt;td&gt;nginx&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h2 id=&quot;搭建过程&quot;&gt;&lt;a href=&quot;#搭建过程&quot; class=&quot;headerlink&quot; title=&quot;搭建过程&quot;&gt;&lt;/a&gt;搭建过程&lt;/h2&gt;&lt;ol&gt;
+&lt;li&gt;使用root登录repo-1服务器&lt;/li&gt;
+&lt;li&gt;整理以下脚本中的变量内容(包括环境信息和依赖包下载脚本部分), 并保存为repo.sh文件在repo服务器上执行.&lt;/li&gt;
+&lt;/ol&gt;
+    
+    </summary>
+    
+      <category term="大数据" scheme="http://www.fullstackmemo.com/categories/%E5%A4%A7%E6%95%B0%E6%8D%AE/"/>
+    
+    
+      <category term="cdh" scheme="http://www.fullstackmemo.com/tags/cdh/"/>
+    
+      <category term="bigdata" scheme="http://www.fullstackmemo.com/tags/bigdata/"/>
+    
+      <category term="hadoop" scheme="http://www.fullstackmemo.com/tags/hadoop/"/>
+    
+      <category term="cloudera" scheme="http://www.fullstackmemo.com/tags/cloudera/"/>
+    
+      <category term="离线" scheme="http://www.fullstackmemo.com/tags/%E7%A6%BB%E7%BA%BF/"/>
+    
+      <category term="仓库" scheme="http://www.fullstackmemo.com/tags/%E4%BB%93%E5%BA%93/"/>
+    
+      <category term="repo" scheme="http://www.fullstackmemo.com/tags/repo/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>使用openssl生成X.509v3版https自签名证书</title>
+    <link href="http://www.fullstackmemo.com/2018/05/10/openssl-gen-https-self-signed-cer/"/>
+    <id>http://www.fullstackmemo.com/2018/05/10/openssl-gen-https-self-signed-cer/</id>
+    <published>2018-05-10T13:22:16.000Z</published>
+    <updated>2019-03-20T09:55:05.592Z</updated>
+    
+    <summary type="html">
+    
+      &lt;h2 id=&quot;一键生成自签名证书脚本-方法一&quot;&gt;&lt;a href=&quot;#一键生成自签名证书脚本-方法一&quot; class=&quot;headerlink&quot; title=&quot;一键生成自签名证书脚本-方法一&quot;&gt;&lt;/a&gt;一键生成自签名证书脚本-方法一&lt;/h2&gt;
+    
+    </summary>
+    
+      <category term="运维" scheme="http://www.fullstackmemo.com/categories/OPS/"/>
+    
+    
+      <category term="openssl 自签名 ssl v3 X.509 v3 https self signed" scheme="http://www.fullstackmemo.com/tags/openssl-%E8%87%AA%E7%AD%BE%E5%90%8D-ssl-v3-X-509-v3-https-self-signed/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>利用promise.all基于react+antd+koa实现伪并发loading渲染数据</title>
+    <link href="http://www.fullstackmemo.com/2018/04/12/learn-react-promise-all/"/>
+    <id>http://www.fullstackmemo.com/2018/04/12/learn-react-promise-all/</id>
+    <published>2018-04-12T04:18:34.000Z</published>
+    <updated>2019-03-20T09:55:05.560Z</updated>
+    
+    <summary type="html">
+    
+      &lt;h1 id=&quot;使用场景&quot;&gt;&lt;a href=&quot;#使用场景&quot; class=&quot;headerlink&quot; title=&quot;使用场景&quot;&gt;&lt;/a&gt;使用场景&lt;/h1&gt;&lt;p&gt;当一个页面的小面板或多个面板里需要调用很多接口, 并且要等待接口返回才渲染界面的时候就可以使promise.all&lt;/p&gt;
+&lt;h1 id=&quot;Demo环境&quot;&gt;&lt;a href=&quot;#Demo环境&quot; class=&quot;headerlink&quot; title=&quot;Demo环境&quot;&gt;&lt;/a&gt;Demo环境&lt;/h1&gt;&lt;ul&gt;
+&lt;li&gt;前端&lt;ul&gt;
+&lt;li&gt;antd: 3.4.1&lt;/li&gt;
+&lt;li&gt;bluebird: 3.5.1&lt;/li&gt;
+&lt;li&gt;react: 16.3.1&lt;/li&gt;
+&lt;li&gt;react-dom: 16.3.1&lt;/li&gt;
+&lt;li&gt;react-scripts-ts: 2.14.0&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;后端&lt;ul&gt;
+&lt;li&gt;koa: 2.5.0&lt;/li&gt;
+&lt;li&gt;koa-router: 7.4.0&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h1 id=&quot;业务场景&quot;&gt;&lt;a href=&quot;#业务场景&quot; class=&quot;headerlink&quot; title=&quot;业务场景&quot;&gt;&lt;/a&gt;业务场景&lt;/h1&gt;&lt;p&gt;设定业务是一个持续交付系统, 里面有用户中心和任务中心和项目中心&lt;br&gt;现在希望在首页的仪表盘中展示当前用户概览, 角色概览, 任务概览和项目概览.&lt;br&gt;而这里的概览暂且仅仅是对各个中心的数据的统计, 并简单的以数字的方式展示出来.&lt;/p&gt;
+    
+    </summary>
+    
+      <category term="前端" scheme="http://www.fullstackmemo.com/categories/Frontend/"/>
+    
+    
+      <category term="react" scheme="http://www.fullstackmemo.com/tags/react/"/>
+    
+      <category term="promise" scheme="http://www.fullstackmemo.com/tags/promise/"/>
+    
+      <category term="promise.all" scheme="http://www.fullstackmemo.com/tags/promise-all/"/>
+    
+      <category term="promise.resolve" scheme="http://www.fullstackmemo.com/tags/promise-resolve/"/>
+    
+      <category term="antd" scheme="http://www.fullstackmemo.com/tags/antd/"/>
+    
+      <category term="then" scheme="http://www.fullstackmemo.com/tags/then/"/>
+    
+      <category term="koa" scheme="http://www.fullstackmemo.com/tags/koa/"/>
+    
+      <category term="koa2" scheme="http://www.fullstackmemo.com/tags/koa2/"/>
+    
+      <category term="koa router" scheme="http://www.fullstackmemo.com/tags/koa-router/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>360安全卫士进程防护导致git-bash系列启动和回车非常慢</title>
+    <link href="http://www.fullstackmemo.com/2018/04/03/360-bash-lags/"/>
+    <id>http://www.fullstackmemo.com/2018/04/03/360-bash-lags/</id>
+    <published>2018-04-03T02:03:55.000Z</published>
+    <updated>2019-03-20T09:55:05.416Z</updated>
+    
+    <summary type="html">
+    
+      &lt;h2 id=&quot;解决方法&quot;&gt;&lt;a href=&quot;#解决方法&quot; class=&quot;headerlink&quot; title=&quot;解决方法&quot;&gt;&lt;/a&gt;解决方法&lt;/h2&gt;&lt;p&gt;打开360安全卫士-&amp;gt;电脑体检-&amp;gt;左下角&lt;code&gt;防护中心&lt;/code&gt;-&amp;gt;6层系统防护&lt;code&gt;查看&lt;/code&gt;-&amp;gt;进程防护”关闭”&lt;/p&gt;
+    
+    </summary>
+    
+      <category term="运维" scheme="http://www.fullstackmemo.com/categories/OPS/"/>
+    
+    
+      <category term="360" scheme="http://www.fullstackmemo.com/tags/360/"/>
+    
+      <category term="360安全卫士" scheme="http://www.fullstackmemo.com/tags/360%E5%AE%89%E5%85%A8%E5%8D%AB%E5%A3%AB/"/>
+    
+      <category term="360安全卫士进程防护" scheme="http://www.fullstackmemo.com/tags/360%E5%AE%89%E5%85%A8%E5%8D%AB%E5%A3%AB%E8%BF%9B%E7%A8%8B%E9%98%B2%E6%8A%A4/"/>
+    
+      <category term="进程防护" scheme="http://www.fullstackmemo.com/tags/%E8%BF%9B%E7%A8%8B%E9%98%B2%E6%8A%A4/"/>
+    
+      <category term="git-bash" scheme="http://www.fullstackmemo.com/tags/git-bash/"/>
+    
+      <category term="Cygwin" scheme="http://www.fullstackmemo.com/tags/Cygwin/"/>
+    
+      <category term="mysys" scheme="http://www.fullstackmemo.com/tags/mysys/"/>
+    
+      <category term="MinGW" scheme="http://www.fullstackmemo.com/tags/MinGW/"/>
+    
+      <category term="lags" scheme="http://www.fullstackmemo.com/tags/lags/"/>
+    
+      <category term="卡顿" scheme="http://www.fullstackmemo.com/tags/%E5%8D%A1%E9%A1%BF/"/>
+    
+      <category term="慢" scheme="http://www.fullstackmemo.com/tags/%E6%85%A2/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>当Promise.all遇到引用类型-所有then结果都一样</title>
+    <link href="http://www.fullstackmemo.com/2018/04/02/promise-all-reference-type/"/>
+    <id>http://www.fullstackmemo.com/2018/04/02/promise-all-reference-type/</id>
+    <published>2018-04-02T13:34:15.000Z</published>
+    <updated>2019-03-20T09:55:05.592Z</updated>
+    
+    <summary type="html">
+    
+      &lt;h2 id=&quot;项目需求&quot;&gt;&lt;a href=&quot;#项目需求&quot; class=&quot;headerlink&quot; title=&quot;项目需求&quot;&gt;&lt;/a&gt;项目需求&lt;/h2&gt;&lt;p&gt;刚用node.js的时候, 为了给前端返回统一的应答格式, 写了一个类似下面的应答格式化的函数.&lt;/p&gt;
+&lt;p&gt;后面用到Promise.all的时候遇到了自己挖的坑, 做一下记录.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;PS&lt;/strong&gt;: 这个坑不一定是用Promise.all才会出现, 明白原理即可避免在其它地方被自己挖坑.&lt;/p&gt;
+    
+    </summary>
+    
+      <category term="通用" scheme="http://www.fullstackmemo.com/categories/Goods/"/>
+    
+    
+      <category term="promise" scheme="http://www.fullstackmemo.com/tags/promise/"/>
+    
+      <category term="promise.all" scheme="http://www.fullstackmemo.com/tags/promise-all/"/>
+    
+      <category term="then" scheme="http://www.fullstackmemo.com/tags/then/"/>
+    
+      <category term="reference type" scheme="http://www.fullstackmemo.com/tags/reference-type/"/>
+    
+      <category term="引用类型" scheme="http://www.fullstackmemo.com/tags/%E5%BC%95%E7%94%A8%E7%B1%BB%E5%9E%8B/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>fetch请求后端API并将响应body保存为文件</title>
+    <link href="http://www.fullstackmemo.com/2018/03/31/fetch-save-file/"/>
+    <id>http://www.fullstackmemo.com/2018/03/31/fetch-save-file/</id>
+    <published>2018-03-31T07:47:00.000Z</published>
+    <updated>2019-03-20T09:55:05.420Z</updated>
+    
+    <summary type="html">
+    
+      &lt;h2 id=&quot;太长不看版&quot;&gt;&lt;a href=&quot;#太长不看版&quot; class=&quot;headerlink&quot; title=&quot;太长不看版&quot;&gt;&lt;/a&gt;太长不看版&lt;/h2&gt;&lt;h3 id=&quot;基于类npm方式管理依赖库的写法&quot;&gt;&lt;a href=&quot;#基于类npm方式管理依赖库的写法&quot; class=&quot;headerlink&quot; title=&quot;基于类npm方式管理依赖库的写法&quot;&gt;&lt;/a&gt;基于类npm方式管理依赖库的写法&lt;/h3&gt;&lt;h4 id=&quot;下载依赖库&quot;&gt;&lt;a href=&quot;#下载依赖库&quot; class=&quot;headerlink&quot; title=&quot;下载依赖库&quot;&gt;&lt;/a&gt;下载依赖库&lt;/h4&gt;&lt;!--�31--&gt;
+    
+    </summary>
+    
+      <category term="前端" scheme="http://www.fullstackmemo.com/categories/Frontend/"/>
+    
+    
+      <category term="fetch" scheme="http://www.fullstackmemo.com/tags/fetch/"/>
+    
+      <category term="react" scheme="http://www.fullstackmemo.com/tags/react/"/>
+    
+      <category term="get" scheme="http://www.fullstackmemo.com/tags/get/"/>
+    
+      <category term="请求" scheme="http://www.fullstackmemo.com/tags/%E8%AF%B7%E6%B1%82/"/>
+    
+      <category term="后端" scheme="http://www.fullstackmemo.com/tags/%E5%90%8E%E7%AB%AF/"/>
+    
+      <category term="响应" scheme="http://www.fullstackmemo.com/tags/%E5%93%8D%E5%BA%94/"/>
+    
+      <category term="response" scheme="http://www.fullstackmemo.com/tags/response/"/>
+    
+      <category term="文件 另存为" scheme="http://www.fullstackmemo.com/tags/%E6%96%87%E4%BB%B6-%E5%8F%A6%E5%AD%98%E4%B8%BA/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>React使用TypeScript的WebPack完整配置文件</title>
+    <link href="http://www.fullstackmemo.com/2018/03/27/webpack-config-ts/"/>
+    <id>http://www.fullstackmemo.com/2018/03/27/webpack-config-ts/</id>
+    <published>2018-03-27T10:56:00.000Z</published>
+    <updated>2019-03-20T09:55:05.592Z</updated>
+    
+    <summary type="html">
+    
+      &lt;h2 id=&quot;webpack配置文件&quot;&gt;&lt;a href=&quot;#webpack配置文件&quot; class=&quot;headerlink&quot; title=&quot;webpack配置文件&quot;&gt;&lt;/a&gt;webpack配置文件&lt;/h2&gt;&lt;h3 id=&quot;webpack-dll-config-js&quot;&gt;&lt;a href=&quot;#webpack-dll-config-js&quot; class=&quot;headerlink&quot; title=&quot;webpack.dll.config.js&quot;&gt;&lt;/a&gt;webpack.dll.config.js&lt;/h3&gt;&lt;p&gt;提前打包好第三方库, 可放在部署期和开发期重复打包第三方库, 缩短部署期和开发期的编译时间&lt;/p&gt;
+    
+    </summary>
+    
+      <category term="通用" scheme="http://www.fullstackmemo.com/categories/Goods/"/>
+    
+    
+      <category term="TypeScript" scheme="http://www.fullstackmemo.com/tags/TypeScript/"/>
+    
+      <category term="WebPack" scheme="http://www.fullstackmemo.com/tags/WebPack/"/>
+    
+      <category term="React" scheme="http://www.fullstackmemo.com/tags/React/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>JavaScript到TypeScript的无痛迁移(React为例)</title>
+    <link href="http://www.fullstackmemo.com/2018/03/27/jsx2tsx/"/>
+    <id>http://www.fullstackmemo.com/2018/03/27/jsx2tsx/</id>
+    <published>2018-03-27T06:23:00.000Z</published>
+    <updated>2019-03-20T09:55:05.420Z</updated>
+    
+    <summary type="html">
+    
+      &lt;h2 id=&quot;“无痛”的定义&quot;&gt;&lt;a href=&quot;#“无痛”的定义&quot; class=&quot;headerlink&quot; title=&quot;“无痛”的定义&quot;&gt;&lt;/a&gt;“无痛”的定义&lt;/h2&gt;&lt;ul&gt;
+&lt;li&gt;熟练后15分钟能迁移一个中小型项目&lt;/li&gt;
+&lt;li&gt;仅接受少量甚至无需修改项目中的源码部分&lt;/li&gt;
+&lt;li&gt;迁移后可以任然使用原来的语法编写项目&lt;/li&gt;
+&lt;li&gt;迁移后不会给项目带来新的bug或坑&lt;/li&gt;
+&lt;/ul&gt;
+    
+    </summary>
+    
+      <category term="通用" scheme="http://www.fullstackmemo.com/categories/Goods/"/>
+    
+    
+      <category term="JavaScript" scheme="http://www.fullstackmemo.com/tags/JavaScript/"/>
+    
+      <category term="TypeScript" scheme="http://www.fullstackmemo.com/tags/TypeScript/"/>
+    
+      <category term="迁移" scheme="http://www.fullstackmemo.com/tags/%E8%BF%81%E7%A7%BB/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>JTP UnLoop 插件分析</title>
+    <link href="http://www.fullstackmemo.com/2018/03/26/jtp-un-loop-analyze/"/>
+    <id>http://www.fullstackmemo.com/2018/03/26/jtp-un-loop-analyze/</id>
+    <published>2018-03-26T07:44:00.000Z</published>
+    <updated>2019-03-20T09:55:05.556Z</updated>
+    
+    <summary type="html">
+    
+      &lt;h2 id=&quot;前言&quot;&gt;&lt;a href=&quot;#前言&quot; class=&quot;headerlink&quot; title=&quot;前言&quot;&gt;&lt;/a&gt;前言&lt;/h2&gt;&lt;p&gt;这篇文章相当于 Chrome 插件入门, 因为这也是我第一次写 Chrome 插件.&lt;/p&gt;
+&lt;h2 id=&quot;插件项目结构&quot;&gt;&lt;a href=&quot;#插件项目结构&quot; class=&quot;headerlink&quot; title=&quot;插件项目结构&quot;&gt;&lt;/a&gt;插件项目结构&lt;/h2&gt;&lt;!--�58--&gt;
+    
+    </summary>
+    
+      <category term="通用" scheme="http://www.fullstackmemo.com/categories/Goods/"/>
+    
+    
+      <category term="Tempo Team Planning" scheme="http://www.fullstackmemo.com/tags/Tempo-Team-Planning/"/>
+    
+      <category term="jira" scheme="http://www.fullstackmemo.com/tags/jira/"/>
+    
+      <category term="死循环" scheme="http://www.fullstackmemo.com/tags/%E6%AD%BB%E5%BE%AA%E7%8E%AF/"/>
+    
+      <category term="插件分析" scheme="http://www.fullstackmemo.com/tags/%E6%8F%92%E4%BB%B6%E5%88%86%E6%9E%90/"/>
+    
+      <category term="Chrome 插件" scheme="http://www.fullstackmemo.com/tags/Chrome-%E6%8F%92%E4%BB%B6/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Tempo Team Planning 死循环分析与解决思路</title>
+    <link href="http://www.fullstackmemo.com/2018/03/26/jtp-loop-analyze/"/>
+    <id>http://www.fullstackmemo.com/2018/03/26/jtp-loop-analyze/</id>
+    <published>2018-03-26T04:54:00.000Z</published>
+    <updated>2019-03-20T09:55:05.420Z</updated>
+    
+    <summary type="html">
+    
+      &lt;h2 id=&quot;故障现象&quot;&gt;&lt;a href=&quot;#故障现象&quot; class=&quot;headerlink&quot; title=&quot;故障现象&quot;&gt;&lt;/a&gt;故障现象&lt;/h2&gt;&lt;ul&gt;
+&lt;li&gt;使用 Tempo Team Planning 的时候, 在创建 Plan 并选择 project 类型查询时, project 下拉框会卡死, 紧接着整个浏览器会卡死.&lt;/li&gt;
+&lt;/ul&gt;
+    
+    </summary>
+    
+      <category term="通用" scheme="http://www.fullstackmemo.com/categories/Goods/"/>
+    
+    
+      <category term="Tempo Team Planning" scheme="http://www.fullstackmemo.com/tags/Tempo-Team-Planning/"/>
+    
+      <category term="jira" scheme="http://www.fullstackmemo.com/tags/jira/"/>
+    
+      <category term="死循环" scheme="http://www.fullstackmemo.com/tags/%E6%AD%BB%E5%BE%AA%E7%8E%AF/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Tempo Team Planning 死循环 bug 解决方案</title>
+    <link href="http://www.fullstackmemo.com/2018/03/26/jtp-un-loop-install/"/>
+    <id>http://www.fullstackmemo.com/2018/03/26/jtp-un-loop-install/</id>
+    <published>2018-03-26T01:30:00.000Z</published>
+    <updated>2019-03-20T09:55:05.560Z</updated>
+    
+    <summary type="html">
+    
+      &lt;h2 id=&quot;插件简介&quot;&gt;&lt;a href=&quot;#插件简介&quot; class=&quot;headerlink&quot; title=&quot;插件简介&quot;&gt;&lt;/a&gt;插件简介&lt;/h2&gt;&lt;p&gt;公司使用 jira 作为项目进度管理, 并使用了 Tempo Team Planning 插件. 可以非常美观的看到团队中每个人的任务分配情况.&lt;br&gt;但是不知道为什么, 在使用过程中创建 Plan 时选择类型为 Project 并查询项目列表时会出现无限循环查询项目权限的提交, 导致 CPU 使用率居高不下,整个页面假死, 需要大约等待 5 分钟才可以正常使用. 所以为了解决这个问题写了一个 Chrome 插件.&lt;/p&gt;
+    
+    </summary>
+    
+      <category term="通用" scheme="http://www.fullstackmemo.com/categories/Goods/"/>
+    
+    
+      <category term="Tempo Team Planning" scheme="http://www.fullstackmemo.com/tags/Tempo-Team-Planning/"/>
+    
+      <category term="jira" scheme="http://www.fullstackmemo.com/tags/jira/"/>
+    
+      <category term="死循环" scheme="http://www.fullstackmemo.com/tags/%E6%AD%BB%E5%BE%AA%E7%8E%AF/"/>
+    
+  </entry>
+  
+</feed>

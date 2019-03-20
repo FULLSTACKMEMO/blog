@@ -1,0 +1,1308 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+  
+  
+  <link rel="stylesheet" href="/lib/needsharebutton/needsharebutton.css">
+
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+  <link href="https://cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.min.css" rel="stylesheet" type="text/css">
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.loli.net/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+  
+
+<link href="https://cdn.bootcss.com/font-awesome/4.6.2/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=6.1.0" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/lemon-violet.png?v=6.1.0">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/lemon-violet.png?v=6.1.0">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/lemon-violet.png?v=6.1.0">
+
+
+  <link rel="mask-icon" href="/images/lemon.svg?v=6.1.0" color="#222">
+
+
+
+
+
+
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '6.1.0',
+    sidebar: {"position":"right","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    fastclick: true,
+    lazyload: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: 'TG4QHW2JND',
+      apiKey: 'eae9b05d48b25432570a208fffefe8d6',
+      indexName: 'blog',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="一键生成自签名证书脚本-方法一">
+<meta name="keywords" content="openssl 自签名 ssl v3 X.509 v3 https self signed">
+<meta property="og:type" content="article">
+<meta property="og:title" content="使用openssl生成X.509v3版https自签名证书">
+<meta property="og:url" content="http://www.fullstackmemo.com/2018/05/10/openssl-gen-https-self-signed-cer/index.html">
+<meta property="og:site_name" content="Fullstack Memo">
+<meta property="og:description" content="一键生成自签名证书脚本-方法一">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2019-03-20T09:55:05.592Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="使用openssl生成X.509v3版https自签名证书">
+<meta name="twitter:description" content="一键生成自签名证书脚本-方法一">
+
+
+
+  <link rel="alternate" href="/atom.xml" title="Fullstack Memo" type="application/atom+xml">
+
+
+
+
+  <link rel="canonical" href="http://www.fullstackmemo.com/2018/05/10/openssl-gen-https-self-signed-cer/">
+
+
+
+<script type="text/javascript" id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>使用openssl生成X.509v3版https自签名证书 | Fullstack Memo</title>
+  
+
+
+
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?77f5b6619b4e57a13348fafb653fda4e";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style type="text/css">
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion {
+      .logo-line-before i { left: initial; }
+      .logo-line-after i { right: initial; }
+    }
+  </style>
+</noscript>
+
+</head>
+
+<script>
+  function ishidden(odiv){
+    var vdiv = document.getElementById(odiv);
+    vdiv.style.display = (vdiv.style.display == 'none')?'block':'none';
+  }
+</script>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-right page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"> 
+
+<div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Fullstack Memo</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <h1 class="site-subtitle" itemprop="description">双引号的全栈备忘录</h1>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+          
+  <li class="menu-item menu-item-home">
+    <a href="/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+</li>
+
+      
+        
+        
+          
+  <li class="menu-item menu-item-tags">
+    <a href="/tags/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+</li>
+
+      
+        
+        
+          
+  <li class="menu-item menu-item-categories">
+    <a href="/categories/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+</li>
+
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+        </li>
+      
+    </ul>
+  
+
+  
+    
+
+    
+    
+      
+      
+    
+      
+      
+    
+      
+      
+    
+    
+
+  
+
+
+  
+
+  
+    <div class="site-search">
+      
+  
+  <div class="algolia-popup popup search-popup">
+    <div class="algolia-search">
+      <div class="algolia-search-input-icon">
+        <i class="fa fa-search"></i>
+      </div>
+      <div class="algolia-search-input" id="algolia-search-input"></div>
+    </div>
+
+    <div class="algolia-results">
+      <div id="algolia-stats"></div>
+      <div id="algolia-hits"></div>
+      <div id="algolia-pagination" class="algolia-pagination"></div>
+    </div>
+
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+  </div>
+
+
+
+
+    </div>
+  
+</nav>
+
+
+  
+
+
+
+ </div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+    <div class="reading-progress-bar"></div>
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://www.fullstackmemo.com/2018/05/10/openssl-gen-https-self-signed-cer/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="x22x22">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/lemon-violet.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Fullstack Memo">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">使用openssl生成X.509v3版https自签名证书</h2>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-05-10T21:22:16+08:00">2018-05-10</time>
+            
+
+            
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/OPS/" itemprop="url" rel="index"><span itemprop="name">运维</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="post-meta-item-icon">
+            <i class="fa fa-eye"></i>
+             阅读次数： 
+            <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>
+            </span>
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="一键生成自签名证书脚本-方法一"><a href="#一键生成自签名证书脚本-方法一" class="headerlink" title="一键生成自签名证书脚本-方法一"></a>一键生成自签名证书脚本-方法一</h2><a id="more"></a>
+<ul>
+<li><p>脚本内容</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/sh</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">printf</span> <span class="string">"[req]</span></span><br><span class="line"><span class="string">default_bits            = 4096</span></span><br><span class="line"><span class="string">default_md              = sha256</span></span><br><span class="line"><span class="string">prompt                  = no</span></span><br><span class="line"><span class="string">encrypt_key             = no</span></span><br><span class="line"><span class="string">string_mask = utf8only</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">distinguished_name      = cert_distinguished_name</span></span><br><span class="line"><span class="string">req_extensions          = req_x509v3_extensions</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string"># 将下面的信息替换成你的信息</span></span><br><span class="line"><span class="string">[ cert_distinguished_name ]</span></span><br><span class="line"><span class="string">C  = CN</span></span><br><span class="line"><span class="string">ST = GD</span></span><br><span class="line"><span class="string">L  = GZ</span></span><br><span class="line"><span class="string">O  = fullstackmemo</span></span><br><span class="line"><span class="string">OU = fullstackmemo</span></span><br><span class="line"><span class="string">CN = fullstackmemo.com</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">[req_x509v3_extensions]</span></span><br><span class="line"><span class="string">basicConstraints = critical,CA:true</span></span><br><span class="line"><span class="string">subjectKeyIdentifier    = hash</span></span><br><span class="line"><span class="string">authorityKeyIdentifier = keyid:always,issuer</span></span><br><span class="line"><span class="string">keyUsage = critical,digitalSignature,keyCertSign,cRLSign #,keyEncipherment</span></span><br><span class="line"><span class="string">extendedKeyUsage  = critical,serverAuth #, clientAuth</span></span><br><span class="line"><span class="string">subjectAltName=@alt_names</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string"># 将下面的信息替换成你的信息, 如果无需绑定域名或IP, 可以将其多余删除</span></span><br><span class="line"><span class="string">[alt_names]</span></span><br><span class="line"><span class="string">DNS.1 = *.fullstackmemo.com</span></span><br><span class="line"><span class="string">IP.1 = 192.168.216.30</span></span><br><span class="line"><span class="string">IP.2 = 127.0.0.1</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">"</span> &gt;ca_cert.conf</span><br><span class="line"></span><br><span class="line"><span class="comment"># 生成证书和key的对应文件名</span></span><br><span class="line">key_file=server-key.pem</span><br><span class="line">cert_file=server-cert.pem</span><br><span class="line"></span><br><span class="line">openssl ecparam -out <span class="variable">$key_file</span> -name prime256v1 -genkey</span><br><span class="line">openssl req -new -sha256 -x509 -days 7300 -config ca_cert.conf -extensions req_x509v3_extensions -key <span class="variable">$key_file</span> -out <span class="variable">$cert_file</span></span><br><span class="line">openssl x509 -<span class="keyword">in</span> <span class="variable">$cert_file</span> -serial -noout</span><br><span class="line">openssl x509 -noout -text -<span class="keyword">in</span> <span class="string">"server-cert.pem"</span></span><br><span class="line"><span class="built_in">echo</span> -e <span class="string">"\e[1m\e[34m基于openssl verify校验证书可用性:\e[0m"</span></span><br><span class="line"><span class="comment"># 返回ok字样代表自签名证书是有效的.</span></span><br><span class="line">openssl verify -verbose -CAfile <span class="variable">$cert_file</span> <span class="variable">$cert_file</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">echo</span> -e <span class="string">"\e[1m\e[34m基于openssl s_server校验证书可用性:\e[0m"</span></span><br><span class="line">openssl s_server -cert <span class="variable">$cert_file</span> -key <span class="variable">$key_file</span> -CAfile <span class="variable">$cert_file</span> -Verify 3 -accept 4430 -www &amp;</span><br><span class="line">openssl_pid=$!</span><br><span class="line"><span class="comment"># 测试证书有效性, 127.0.0.1可以改成alt_names中你想测试的域名或IP, 前提是被测试的域名需要被正确解析到本机.</span></span><br><span class="line"><span class="comment"># 返回Verify return code: 0 (ok)代表自签名证书是有效的.</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">'GET /HTTP/1.1'</span> | openssl s_client -connect 127.0.0.1:4430 -cert <span class="variable">$cert_file</span> -key <span class="variable">$key_file</span> -CAfile <span class="variable">$cert_file</span></span><br><span class="line"><span class="built_in">kill</span> <span class="variable">$&#123;openssl_pid&#125;</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>脚本使用方法</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 将以上脚本内容需要修改部分修改后复制到/tmp/cert/self_signed.sh</span></span><br><span class="line">chmod 755 /tmp/cert/self_signed.sh</span><br><span class="line"></span><br><span class="line"><span class="comment"># 运行此命令后在/tmp/cert下即可看到"server-cert.pem"和"server-key.pem"文件</span></span><br><span class="line">/tmp/cert/self_signed.sh</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<h2 id="命令方式生成基于CA中心的自签名证书-方法二"><a href="#命令方式生成基于CA中心的自签名证书-方法二" class="headerlink" title="命令方式生成基于CA中心的自签名证书-方法二"></a>命令方式生成基于CA中心的自签名证书-方法二</h2><ul>
+<li><p>openssl.cnf</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">[req]</span><br><span class="line">default_bits            = 4096</span><br><span class="line">default_md              = sha256</span><br><span class="line">prompt                  = no</span><br><span class="line">encrypt_key             = no</span><br><span class="line">string_mask = utf8only</span><br><span class="line"></span><br><span class="line">distinguished_name      = cert_distinguished_name</span><br><span class="line">req_extensions          = req_x509v3_extensions</span><br><span class="line"></span><br><span class="line"><span class="comment"># 将下面的信息替换成你的信息</span></span><br><span class="line">[ cert_distinguished_name ]</span><br><span class="line">C  = CN</span><br><span class="line">ST = GD</span><br><span class="line">L  = GZ</span><br><span class="line">O  = fullstackmemo</span><br><span class="line">OU = fullstackmemo</span><br><span class="line">CN = fullstackmemo.com</span><br><span class="line"></span><br><span class="line">[req_x509v3_extensions]</span><br><span class="line">basicConstraints = critical,CA:<span class="literal">true</span></span><br><span class="line">subjectKeyIdentifier    = <span class="built_in">hash</span></span><br><span class="line"><span class="comment"># authorityKeyIdentifier = keyid:always,issuer</span></span><br><span class="line">keyUsage = critical,digitalSignature,cRLSign <span class="comment">#,keyEncipherment</span></span><br><span class="line">extendedKeyUsage  = critical,serverAuth <span class="comment">#, clientAuth</span></span><br><span class="line">subjectAltName=@alt_names</span><br><span class="line"></span><br><span class="line"><span class="comment"># 将下面的信息替换成你的信息, 如果无需绑定域名或IP, 可以将其多余删除</span></span><br><span class="line">[alt_names]</span><br><span class="line">DNS.1 = *.fullstackmemo.com</span><br><span class="line">IP.1 = 192.168.216.30</span><br><span class="line">IP.2 = 127.0.0.1</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>执行命令</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">mkdir -p /tmp/keys/private</span><br><span class="line"><span class="built_in">cd</span> /tmp/keys</span><br><span class="line"><span class="comment"># 将以上openssl.cnf内容保存到此目录下且文件名为openssl.cnf</span></span><br><span class="line"><span class="comment"># 生成秘钥</span></span><br><span class="line">openssl genrsa -out root.key 4096</span><br><span class="line"><span class="comment"># 生成根证书签发申请文件, -subj部分需要修改成自己的内容</span></span><br><span class="line">openssl req -new -key root.key -out root.csr -subj <span class="string">"/C=CN/ST=GD/L=SZ/O=fullstackmemo/OU=fullstackmemo/CN=fullstackmemo.com"</span></span><br><span class="line"><span class="comment"># 自签发证书</span></span><br><span class="line">openssl x509 -req -days 7300 -sha256 -extensions req_x509v3_extensions -signkey root.key -<span class="keyword">in</span> root.csr -out root.cer</span><br><span class="line"><span class="comment"># 生成服务端私钥</span></span><br><span class="line">openssl genrsa -out private/server-key.pem 4096</span><br><span class="line"><span class="comment"># 生成证书请求文件</span></span><br><span class="line">openssl req -new -key private/server-key.pem -config openssl.cnf -extensions req_x509v3_extensions -out private/server.csr</span><br><span class="line"><span class="comment"># 使用根证书签发服务端证书(此时证书只有公钥，没有私钥)</span></span><br><span class="line">openssl x509 -req -days 7300 -sha256 -extfile openssl.cnf -extensions req_x509v3_extensions -CA root.cer -CAkey root.key -CAserial ca.srl -CAcreateserial -<span class="keyword">in</span> private/server.csr -out private/server-cert.pem</span><br><span class="line"><span class="comment"># 验证证书有效性, 如果返回ok, 代表初步验证通过</span></span><br><span class="line">openssl verify -verbose -CAfile root.cer private/server-cert.pem</span><br><span class="line"><span class="comment"># 调用服务模式进行证书验证, 输入这行命令后要手动按一下回车键</span></span><br><span class="line">openssl s_server -cert private/server-cert.pem -key private/server-key.pem -CAfile root.cer -Verify 3 -accept 4430 -www &amp;</span><br><span class="line">openssl_pid=$!</span><br><span class="line"><span class="comment"># 此行返回Verify return code: 0 (ok)代表验证通过</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">'GET /HTTP/1.1'</span> | openssl s_client -connect 127.0.0.1:4430 -cert private/server-cert.pem -key private/server-key.pem -CAfile root.cer</span><br><span class="line"><span class="comment"># 关闭测试用的opessl服务</span></span><br><span class="line"><span class="built_in">kill</span> <span class="variable">$&#123;openssl_pid&#125;</span></span><br><span class="line"><span class="comment"># 在/tmp/keys/private下即可看到"server-cert.pem"和"server-key.pem"文件</span></span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<h2 id="Chrome常见报错"><a href="#Chrome常见报错" class="headerlink" title="Chrome常见报错"></a>Chrome常见报错</h2><ul>
+<li>NET::ERR_CERT_INVALID<ol>
+<li>使用<code>openssl req</code>命令来生成<code>server.csr</code>文件的时没配置<code>openssl.cnf</code>文件且没有带上<code>-config openssl.cnf</code></li>
+<li><code>openssl.cnf</code>中指定了<code>keyUsage</code>但是没带<code>keyCertSign</code></li>
+</ol>
+</li>
+<li>NET::ERR_CERT_AUTHORITY_INVALID<ul>
+<li>Windows-Chrome<ol>
+<li>将<code>server-cert.pem</code>下载到客户电脑上, 改名为<code>server-cert.cer</code>且双击此文件</li>
+<li>点击<code>安装证书</code>-&gt;<code>当前用户</code>-&gt;<code>将所有的证书放入下列存储</code>-&gt;<code>浏览</code>-&gt;<code>受信任的根证书颁发机构</code>-&gt;<code>确定</code>-&gt;<code>下一步</code>-&gt;<code>完成</code>-&gt;<code>确定</code>-&gt;<code>确定</code></li>
+<li>重启Chrome浏览器, 再次访问即可, 也可以直接在浏览器中输入<code>chrome://restart</code>来重启Chrome浏览器</li>
+</ol>
+</li>
+<li>macOS-Chrome<ol>
+<li>将<code>server-cert.pem</code>下载到客户电脑上, 改名为<code>server-cert.cer</code></li>
+<li>参考Windows方式自行谷歌百度, 关键词: <code>macOS 导入cer证书</code></li>
+</ol>
+</li>
+<li>Firefox<ol>
+<li>在警告页，点击<code>高级</code>-&gt;<code>添加例外</code>-&gt;<code>确认安全例外</code></li>
+</ol>
+</li>
+</ul>
+</li>
+</ul>
+<h2 id="FireFox常见报错"><a href="#FireFox常见报错" class="headerlink" title="FireFox常见报错"></a>FireFox常见报错</h2><ul>
+<li>您的连接并不安全-该证书因为其自签名而不被信任<ol>
+<li>在警告页，点击<code>高级</code>-&gt;<code>添加例外</code>-&gt;<code>确认安全例外</code></li>
+</ol>
+</li>
+</ul>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p><a href="https://github.com/Tencent/WeDemo/wiki/WeDemo%E7%94%9F%E6%88%90%E5%AF%86%E9%92%A5%E4%B8%8E%E8%87%AA%E7%AD%BE%E5%90%8D%E8%AF%81%E4%B9%A6%E6%8C%87%E5%8D%97" target="_blank" rel="noopener">WeDemo生成密钥与自签名证书指南</a><br><a href="https://www.ibm.com/support/knowledgecenter/zh/SSHSCD_7.0.0/com.ibm.worklight.installconfig.doc/admin/c_ssl_config.html#c_ssl_config__self-signed_certs_vs_self-signed_CAs" target="_blank" rel="noopener">通过使用不受信任的证书配置 SSL</a><br><a href="https://www.ibm.com/support/knowledgecenter/zh/SSYMRC_4.0.7/com.ibm.rational.rrdi.admin.doc/topics/t_browser_ss_cert.html" target="_blank" rel="noopener">配置浏览器以使用自签名证书</a><br><a href="https://access.redhat.com/documentation/en-us/red_hat_certificate_system/9/html/administration_guide/standard_x.509_v3_certificate_extensions" target="_blank" rel="noopener">STANDARD X.509 V3 CERTIFICATE EXTENSION REFERENCE</a></p>
+
+      
+    </div>
+
+    
+      
+
+
+    
+
+    
+    
+    
+
+    
+
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>x22x22</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://www.fullstackmemo.com/2018/05/10/openssl-gen-https-self-signed-cer/" title="使用openssl生成X.509v3版https自签名证书">http://www.fullstackmemo.com/2018/05/10/openssl-gen-https-self-signed-cer/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="external nofollow" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明出处！</li>
+</ul>
+
+      </div>
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/openssl-自签名-ssl-v3-X-509-v3-https-self-signed/" rel="tag"># openssl 自签名 ssl v3 X.509 v3 https self signed</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/04/12/learn-react-promise-all/" rel="next" title="利用promise.all基于react+antd+koa实现伪并发loading渲染数据">
+                <i class="fa fa-chevron-left"></i> 利用promise.all基于react+antd+koa实现伪并发loading渲染数据
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/07/24/build-offline-cdh-repo/" rel="prev" title="搭建CDH离线仓库">
+                搭建CDH离线仓库 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+  
+    <div class="comments" id="comments">
+      
+        <div onclick="showGitment()" id="gitment-display-button">显示 Gitment 评论</div>
+        <div id="gitment-container" style="display:none"></div>
+      
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/images/lemon-violet.png" alt="x22x22">
+            
+              <p class="site-author-name" itemprop="name">x22x22</p>
+              <p class="site-description motion-element" itemprop="description">与开发相关的东西乱谈</p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives">
+                
+                    <span class="site-state-item-count">17</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  <a href="/categories/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">6</span>
+                    <span class="site-state-item-name">分类</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">77</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+            <div class="feed-link motion-element">
+              <a href="/atom.xml" rel="alternate">
+                <i class="fa fa-rss"></i>
+                RSS
+              </a>
+            </div>
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  <a href="https://github.com/fullstackmemo" target="_blank" title="GitHub" rel="external nofollow"><i class="fa fa-fw fa-github"></i></a>
+                  
+                </span>
+              
+                <span class="links-of-author-item">
+                  <a href="mailto:fullstackmemo@outlook.com" target="_blank" title="E-Mail" rel="external nofollow"><i class="fa fa-fw fa-envelope"></i></a>
+                  
+                </span>
+              
+                <span class="links-of-author-item">
+                  <a href="https://twitter.com/fullstackmemo" target="_blank" title="Twitter" rel="external nofollow"><i class="fa fa-fw fa-twitter"></i></a>
+                  
+                </span>
+              
+                <span class="links-of-author-item">
+                  <a href="https://www.facebook.com/fullstackmemo" target="_blank" title="FB Page" rel="external nofollow"><i class="fa fa-fw fa-facebook"></i></a>
+                  
+                </span>
+              
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#一键生成自签名证书脚本-方法一"><span class="nav-number">1.</span> <span class="nav-text">一键生成自签名证书脚本-方法一</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#命令方式生成基于CA中心的自签名证书-方法二"><span class="nav-number">2.</span> <span class="nav-text">命令方式生成基于CA中心的自签名证书-方法二</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Chrome常见报错"><span class="nav-number">3.</span> <span class="nav-text">Chrome常见报错</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#FireFox常见报错"><span class="nav-number">4.</span> <span class="nav-text">FireFox常见报错</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考"><span class="nav-number">5.</span> <span class="nav-text">参考</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2018 &mdash; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate"> 
+    <i class="fa fa-x22x22"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">x22x22</span>
+
+  
+
+  
+</div>
+
+
+  
+
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" rel="external nofollow" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" rel="external nofollow" href="https://github.com/theme-next/hexo-theme-next">NexT.Mist</a> v6.1.0</div>
+
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv" title="总访客量">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+    </span>
+  
+
+  
+    <span class="site-pv" title="总访问量">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+
+        
+      </div>
+      <script>
+        window.addEventListener('message', function (e) {
+            if (e.origin !== 'https://runkit.com') return;
+            try {
+                var data = JSON.parse(e.data);
+            } catch (e) {
+                return false;
+            }
+            if (data.context !== 'iframe.resize') {
+                return false;
+            }
+            var iframe = document.querySelector('iframe[src="' + data.src + '"]');
+            if (!iframe) {
+                return false;
+            }
+            if (data.height) {
+                iframe.height = data.height;
+            }
+        });
+      </script>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+      <div id="needsharebutton-float">
+        <span class="btn">
+          <i class="fa fa-share-alt" aria-hidden="true"></i>
+        </span>
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/jquery/2.1.3/jquery.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/velocity/1.2.1/velocity.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/velocity/1.2.1/velocity.ui.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/reading_progress/reading_progress.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=6.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=6.1.0"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=6.1.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=6.1.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=6.1.0"></script>
+
+
+
+  
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+<!-- LOCAL: You can save these files to your site and update links -->
+    
+        
+        <link rel="stylesheet" href="https://jjeejj.github.io/css/gitment.css">
+        <script src="https://jjeejj.github.io/js/gitment.js"></script>
+    
+<!-- END LOCAL -->
+
+    
+
+    
+      <script type="text/javascript">
+      function renderGitment(){
+        var gitment = new Gitment({
+            id: window.location.pathname,
+            owner: 'fullstackmemo',
+            repo: 'gitment-comments',
+            
+            oauth: {
+            
+            
+                client_secret: '119cdc7c9d0cde4de212a4714b032d6b5286e317',
+            
+                client_id: 'e067397a2bce568d4556'
+            }});
+        gitment.render('gitment-container');
+      }
+
+      
+      function showGitment(){
+        document.getElementById("gitment-display-button").style.display = "none";
+        document.getElementById("gitment-container").style.display = "block";
+        renderGitment();
+      }
+      
+      </script>
+    
+
+
+
+
+
+
+  
+
+
+
+
+  
+  
+  
+    
+  
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/instantsearch.js@1/dist/instantsearch.min.css">
+
+  
+  
+    
+  
+  <script src="https://cdn.jsdelivr.net/npm/instantsearch.js@1/dist/instantsearch.js"></script>
+  
+
+  <script src="/js/src/algolia-search.js?v=6.1.0"></script>
+
+
+
+  
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+
+  
+  
+  
+  <script src="/lib/needsharebutton/needsharebutton.js"></script>
+
+  <script>
+    
+    
+      flOptions = {};
+      
+          flOptions.iconStyle = "default";
+      
+          flOptions.boxForm = "vertical";
+      
+          flOptions.position = "middleRight";
+      
+          flOptions.networks = "Weibo,Wechat,Douban,QQZone,Twitter,Facebook";
+      
+      new needShareButton('#needsharebutton-float', flOptions);
+    
+  </script>
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

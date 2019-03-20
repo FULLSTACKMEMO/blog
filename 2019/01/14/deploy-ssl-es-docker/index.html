@@ -1,0 +1,1340 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+  
+  
+  <link rel="stylesheet" href="/lib/needsharebutton/needsharebutton.css">
+
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+  <link href="https://cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.min.css" rel="stylesheet" type="text/css">
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.loli.net/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+  
+
+<link href="https://cdn.bootcss.com/font-awesome/4.6.2/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=6.1.0" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/lemon-violet.png?v=6.1.0">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/lemon-violet.png?v=6.1.0">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/lemon-violet.png?v=6.1.0">
+
+
+  <link rel="mask-icon" href="/images/lemon.svg?v=6.1.0" color="#222">
+
+
+
+
+
+
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '6.1.0',
+    sidebar: {"position":"right","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    fastclick: true,
+    lazyload: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: 'TG4QHW2JND',
+      apiKey: 'eae9b05d48b25432570a208fffefe8d6',
+      indexName: 'blog',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="前言在生产环境中部署docker需要开启加密通讯, 这样可以保障ES各个组件直接通讯的安全性 环境说明: 本部署基于Windows的linux版docker, 如果是在linux docker下部署, 仅需要安装docker-ce与docker-compose    项目 说明     宿主机系统 Windows 10   虚拟机系统 Boot2Docker 18.09.1   docker 18">
+<meta name="keywords" content="docker,es,Elasticsearch,加密,SSL,TLS">
+<meta property="og:type" content="article">
+<meta property="og:title" content="通过Docker部署Elasticsearch时开启SSL&#x2F;TLS加密通讯">
+<meta property="og:url" content="http://www.fullstackmemo.com/2019/01/14/deploy-ssl-es-docker/index.html">
+<meta property="og:site_name" content="Fullstack Memo">
+<meta property="og:description" content="前言在生产环境中部署docker需要开启加密通讯, 这样可以保障ES各个组件直接通讯的安全性 环境说明: 本部署基于Windows的linux版docker, 如果是在linux docker下部署, 仅需要安装docker-ce与docker-compose    项目 说明     宿主机系统 Windows 10   虚拟机系统 Boot2Docker 18.09.1   docker 18">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2019-03-20T09:55:05.420Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="通过Docker部署Elasticsearch时开启SSL&#x2F;TLS加密通讯">
+<meta name="twitter:description" content="前言在生产环境中部署docker需要开启加密通讯, 这样可以保障ES各个组件直接通讯的安全性 环境说明: 本部署基于Windows的linux版docker, 如果是在linux docker下部署, 仅需要安装docker-ce与docker-compose    项目 说明     宿主机系统 Windows 10   虚拟机系统 Boot2Docker 18.09.1   docker 18">
+
+
+
+  <link rel="alternate" href="/atom.xml" title="Fullstack Memo" type="application/atom+xml">
+
+
+
+
+  <link rel="canonical" href="http://www.fullstackmemo.com/2019/01/14/deploy-ssl-es-docker/">
+
+
+
+<script type="text/javascript" id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>通过Docker部署Elasticsearch时开启SSL/TLS加密通讯 | Fullstack Memo</title>
+  
+
+
+
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?77f5b6619b4e57a13348fafb653fda4e";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style type="text/css">
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion {
+      .logo-line-before i { left: initial; }
+      .logo-line-after i { right: initial; }
+    }
+  </style>
+</noscript>
+
+</head>
+
+<script>
+  function ishidden(odiv){
+    var vdiv = document.getElementById(odiv);
+    vdiv.style.display = (vdiv.style.display == 'none')?'block':'none';
+  }
+</script>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-right page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"> 
+
+<div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Fullstack Memo</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <h1 class="site-subtitle" itemprop="description">双引号的全栈备忘录</h1>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+          
+  <li class="menu-item menu-item-home">
+    <a href="/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+</li>
+
+      
+        
+        
+          
+  <li class="menu-item menu-item-tags">
+    <a href="/tags/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+</li>
+
+      
+        
+        
+          
+  <li class="menu-item menu-item-categories">
+    <a href="/categories/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+</li>
+
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+        </li>
+      
+    </ul>
+  
+
+  
+    
+
+    
+    
+      
+      
+    
+      
+      
+    
+      
+      
+    
+    
+
+  
+
+
+  
+
+  
+    <div class="site-search">
+      
+  
+  <div class="algolia-popup popup search-popup">
+    <div class="algolia-search">
+      <div class="algolia-search-input-icon">
+        <i class="fa fa-search"></i>
+      </div>
+      <div class="algolia-search-input" id="algolia-search-input"></div>
+    </div>
+
+    <div class="algolia-results">
+      <div id="algolia-stats"></div>
+      <div id="algolia-hits"></div>
+      <div id="algolia-pagination" class="algolia-pagination"></div>
+    </div>
+
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+  </div>
+
+
+
+
+    </div>
+  
+</nav>
+
+
+  
+
+
+
+ </div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+    <div class="reading-progress-bar"></div>
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://www.fullstackmemo.com/2019/01/14/deploy-ssl-es-docker/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="x22x22">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/lemon-violet.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Fullstack Memo">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">通过Docker部署Elasticsearch时开启SSL/TLS加密通讯</h2>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-01-14T13:31:06+08:00">2019-01-14</time>
+            
+
+            
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/OPS/" itemprop="url" rel="index"><span itemprop="name">运维</span></a></span>
+
+                
+                
+                  ， 
+                
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/OPS/大数据/" itemprop="url" rel="index"><span itemprop="name">大数据</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="post-meta-item-icon">
+            <i class="fa fa-eye"></i>
+             阅读次数： 
+            <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>
+            </span>
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>在生产环境中部署docker需要开启加密通讯, 这样可以保障ES各个组件直接通讯的安全性</p>
+<h2 id="环境"><a href="#环境" class="headerlink" title="环境"></a>环境</h2><p><strong><em>说明</em></strong>: 本部署基于Windows的linux版docker, 如果是在linux docker下部署, 仅需要安装docker-ce与docker-compose</p>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>宿主机系统</td>
+<td>Windows 10</td>
+</tr>
+<tr>
+<td>虚拟机系统</td>
+<td>Boot2Docker 18.09.1</td>
+</tr>
+<tr>
+<td>docker</td>
+<td>18.09.0</td>
+</tr>
+<tr>
+<td>docker-compose</td>
+<td>1.23.2</td>
+</tr>
+<tr>
+<td>ES容器IP</td>
+<td>192.168.28.60</td>
+</tr>
+<tr>
+<td>git</td>
+<td>2.20.1-64-bit</td>
+</tr>
+</tbody>
+</table>
+<a id="more"></a>
+<h2 id="涉及的文件"><a href="#涉及的文件" class="headerlink" title="涉及的文件"></a>涉及的文件</h2><p>新建一个空目录, 名为”deploy-ssl-es-docker”, 将以下文件放在此目录的根目录下.</p>
+<ul>
+<li><p>instances.yml:</p>
+<p>  此文件配合<a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/certgen.html" target="_blank" rel="noopener">elasticsearch-certgen</a>工具使用</p>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">instances:</span><br><span class="line">  - name: es01</span><br><span class="line">    dns:</span><br><span class="line">      <span class="comment"># es容器的dns名</span></span><br><span class="line">      - es01</span><br><span class="line">      - localhost</span><br><span class="line">    ip:</span><br><span class="line">      <span class="comment"># 使用IP访问时此处要改成调用容器的IP</span></span><br><span class="line">      <span class="comment"># 不一定是容器自身的IP, 而是各个服务进行调用的IP</span></span><br><span class="line">      <span class="comment"># 否则证书认证将无法通过</span></span><br><span class="line">      <span class="comment"># 可填多个IP</span></span><br><span class="line">      - 127.0.0.1</span><br><span class="line"></span><br><span class="line">  - name: es02</span><br><span class="line">    dns:</span><br><span class="line">      - es02</span><br><span class="line">      - localhost</span><br><span class="line">    ip:</span><br><span class="line">      <span class="comment"># 使用IP访问时此处要改成调用容器的IP</span></span><br><span class="line">      <span class="comment"># 不一定是容器自身的IP, 而是各个服务进行调用的IP</span></span><br><span class="line">      <span class="comment"># 否则证书认证将无法通过</span></span><br><span class="line">      <span class="comment"># 可填多个IP</span></span><br><span class="line">      - 127.0.0.1</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>.env:</p>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># es容器内的证书存储位置</span></span><br><span class="line">CERTS_DIR=/usr/share/elasticsearch/config/certificates</span><br><span class="line"><span class="comment"># elastic用户的密码, 这里需要修改后再进行下面的操作</span></span><br><span class="line">ELASTIC_PASSWORD=PleaseChangeMe</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>create-certs.yml:</p>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">version: <span class="string">'2.2'</span></span><br><span class="line"></span><br><span class="line">services:</span><br><span class="line">  create_certs:</span><br><span class="line">    container_name: create_certs</span><br><span class="line">    image: docker.elastic.co/elasticsearch/elasticsearch:6.5.4</span><br><span class="line">    <span class="built_in">command</span>: &gt;</span><br><span class="line">      bash -c <span class="string">'</span></span><br><span class="line"><span class="string">        if [[ ! -d config/certificates/certs ]]; then</span></span><br><span class="line"><span class="string">          mkdir config/certificates/certs;</span></span><br><span class="line"><span class="string">        fi;</span></span><br><span class="line"><span class="string">        if [[ ! -f /local/certs/bundle.zip ]]; then</span></span><br><span class="line"><span class="string">          bin/elasticsearch-certgen --silent --in config/certificates/instances.yml --out config/certificates/certs/bundle.zip;</span></span><br><span class="line"><span class="string">          # 将新生成的证书文件放到"config/certificates/certs"</span></span><br><span class="line"><span class="string">          unzip config/certificates/certs/bundle.zip -d config/certificates/certs; </span></span><br><span class="line"><span class="string">        fi;</span></span><br><span class="line"><span class="string">        chgrp -R 0 config/certificates/certs</span></span><br><span class="line"><span class="string">      '</span></span><br><span class="line">    user: <span class="variable">$&#123;UID:-1000&#125;</span></span><br><span class="line">    working_dir: /usr/share/elasticsearch</span><br><span class="line">    volumes: [<span class="string">'.:/usr/share/elasticsearch/config/certificates'</span>]</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>docker-compose.yml:</p>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br></pre></td><td class="code"><pre><span class="line">version: <span class="string">'2.2'</span></span><br><span class="line"></span><br><span class="line">services:</span><br><span class="line">  es01:</span><br><span class="line">    container_name: es01</span><br><span class="line">    image: docker.elastic.co/elasticsearch/elasticsearch:6.5.4</span><br><span class="line">    <span class="comment"># 生产环境建议设置ulimits</span></span><br><span class="line">    ulimits:</span><br><span class="line">      memlock:</span><br><span class="line">        soft: -1</span><br><span class="line">        hard: -1</span><br><span class="line">      nofile:</span><br><span class="line">        soft: 65536</span><br><span class="line">        hard: 65536</span><br><span class="line">      nproc:</span><br><span class="line">        soft: 65536</span><br><span class="line">        hard: 65536</span><br><span class="line">    environment:</span><br><span class="line">      - node.name=es01</span><br><span class="line">      <span class="comment"># 生产环境建议开启</span></span><br><span class="line">      - bootstrap.memory_lock=<span class="literal">true</span></span><br><span class="line">      - discovery.zen.minimum_master_nodes=2</span><br><span class="line">      - ELASTIC_PASSWORD=<span class="variable">$ELASTIC_PASSWORD</span></span><br><span class="line">      - <span class="string">'ES_JAVA_OPTS=-Xms512m -Xmx512m'</span></span><br><span class="line">      - xpack.license.self_generated.type=trial</span><br><span class="line">      - xpack.security.enabled=<span class="literal">true</span></span><br><span class="line">      - xpack.security.http.ssl.enabled=<span class="literal">true</span></span><br><span class="line">      - xpack.security.transport.ssl.enabled=<span class="literal">true</span></span><br><span class="line">      - xpack.security.transport.ssl.verification_mode=certificate</span><br><span class="line">      - xpack.ssl.certificate_authorities=<span class="variable">$CERTS_DIR</span>/ca/ca.crt</span><br><span class="line">      - xpack.ssl.certificate=<span class="variable">$CERTS_DIR</span>/es01/es01.crt</span><br><span class="line">      - xpack.ssl.key=<span class="variable">$CERTS_DIR</span>/es01/es01.key</span><br><span class="line">    volumes: [<span class="string">'esdata_01:/usr/share/elasticsearch/data'</span>, <span class="string">'./certs:$CERTS_DIR'</span>]</span><br><span class="line">    ports:</span><br><span class="line">      - 9200:9200</span><br><span class="line">    healthcheck:</span><br><span class="line">      <span class="built_in">test</span>: curl --cacert <span class="variable">$CERTS_DIR</span>/ca/ca.crt -s https://localhost:9200 &gt;/dev/null; <span class="keyword">if</span> [[ $$? == 52 ]]; <span class="keyword">then</span> <span class="built_in">echo</span> 0; <span class="keyword">else</span> <span class="built_in">echo</span> 1; <span class="keyword">fi</span></span><br><span class="line">      interval: 30s</span><br><span class="line">      timeout: 10s</span><br><span class="line">      retries: 5</span><br><span class="line"></span><br><span class="line">  es02:</span><br><span class="line">    container_name: es02</span><br><span class="line">    image: docker.elastic.co/elasticsearch/elasticsearch:6.5.4</span><br><span class="line">    <span class="comment"># 生产环境建议设置ulimits</span></span><br><span class="line">    ulimits:</span><br><span class="line">      memlock:</span><br><span class="line">        soft: -1</span><br><span class="line">        hard: -1</span><br><span class="line">      nofile:</span><br><span class="line">        soft: 65536</span><br><span class="line">        hard: 65536</span><br><span class="line">      nproc:</span><br><span class="line">        soft: 65536</span><br><span class="line">        hard: 65536</span><br><span class="line">    environment:</span><br><span class="line">      - node.name=es02</span><br><span class="line">      <span class="comment"># 生产环境建议开启</span></span><br><span class="line">      - bootstrap.memory_lock=<span class="literal">true</span></span><br><span class="line">      - discovery.zen.minimum_master_nodes=2</span><br><span class="line">      <span class="comment"># elastic用户的密码, 需要在".env"文件中修改</span></span><br><span class="line">      - ELASTIC_PASSWORD=<span class="variable">$ELASTIC_PASSWORD</span></span><br><span class="line">      - discovery.zen.ping.unicast.hosts=es01</span><br><span class="line">      - <span class="string">'ES_JAVA_OPTS=-Xms512m -Xmx512m'</span></span><br><span class="line">      <span class="comment"># xpack的授权模式, 提供basic和trial</span></span><br><span class="line">      <span class="comment"># ref: https://www.elastic.co/guide/en/elasticsearch/reference/master/license-settings.html</span></span><br><span class="line">      - xpack.license.self_generated.type=trial</span><br><span class="line">      - xpack.security.enabled=<span class="literal">true</span></span><br><span class="line">      - xpack.security.http.ssl.enabled=<span class="literal">true</span></span><br><span class="line">      - xpack.security.transport.ssl.enabled=<span class="literal">true</span></span><br><span class="line">      <span class="comment"># 提供full, certificate, 和none三种选项, 由于是自签名所以设置成certificate</span></span><br><span class="line">      <span class="comment"># ref: https://www.elastic.co/guide/en/elasticsearch/reference/current/security-settings.html#ssl-tls-settings</span></span><br><span class="line">      - xpack.security.transport.ssl.verification_mode=certificate</span><br><span class="line">      - xpack.ssl.certificate_authorities=<span class="variable">$CERTS_DIR</span>/ca/ca.crt</span><br><span class="line">      - xpack.ssl.certificate=<span class="variable">$CERTS_DIR</span>/es02/es02.crt</span><br><span class="line">      - xpack.ssl.key=<span class="variable">$CERTS_DIR</span>/es02/es02.key</span><br><span class="line">    volumes: [<span class="string">'esdata_02:/usr/share/elasticsearch/data'</span>, <span class="string">'./certs:$CERTS_DIR'</span>]</span><br><span class="line"></span><br><span class="line">  wait_until_ready:</span><br><span class="line">    image: docker.elastic.co/elasticsearch/elasticsearch:6.5.4</span><br><span class="line">    <span class="built_in">command</span>: /usr/bin/<span class="literal">true</span></span><br><span class="line">    depends_on: &#123; <span class="string">'es01'</span>: &#123; <span class="string">'condition'</span>: <span class="string">'service_healthy'</span> &#125; &#125;</span><br><span class="line"></span><br><span class="line">volumes: &#123; <span class="string">'esdata_01'</span>: &#123; <span class="string">'driver'</span>: <span class="string">'local'</span> &#125;, <span class="string">'esdata_02'</span>: &#123; <span class="string">'driver'</span>: <span class="string">'local'</span> &#125; &#125;</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<h2 id="部署"><a href="#部署" class="headerlink" title="部署"></a>部署</h2><p>如果是在Windows下运行, 建议以下命令使用git bash执行</p>
+<p>命令行进入”deploy-ssl-es-docker”目录并执行以下命令:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># winpty docker-machine ssh # 如果是Windows git bash下执行, 需要去掉此行注释</span></span><br><span class="line"></span><br><span class="line">sudo /bin/bash -c <span class="string">'cat &gt;&gt; /etc/sysctl.conf &lt;&lt;EOF</span></span><br><span class="line"><span class="string">vm.max_map_count=262144</span></span><br><span class="line"><span class="string">EOF'</span></span><br><span class="line">sudo sysctl -p</span><br><span class="line"></span><br><span class="line"><span class="comment"># exit # 如果是Windows git bash下执行, 需要去掉此行注释</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建证书</span></span><br><span class="line">docker-compose -f create-certs.yml up</span><br><span class="line"></span><br><span class="line"><span class="comment"># 启动容器</span></span><br><span class="line">docker-compose up -d</span><br></pre></td></tr></table></figure>
+<h2 id="测试运行状态"><a href="#测试运行状态" class="headerlink" title="测试运行状态"></a>测试运行状态</h2><p>启动服务后等2-3分钟执行以下命令查看服务是否正常:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 请将'192.168.28.60'换成环境中真实的容器IP, 如果返回不正常可以使用"docker logs es01"查看日志分析问题</span></span><br><span class="line">curl --cacert certs/ca/ca.crt -u elastic:PleaseChangeMe https://192.168.28.60:9200</span><br><span class="line"></span><br><span class="line"><span class="comment"># 返回信息:</span></span><br><span class="line"><span class="comment"># &#123;</span></span><br><span class="line"><span class="comment">#   "name" : "es01",</span></span><br><span class="line"><span class="comment">#   "cluster_name" : "docker-cluster",</span></span><br><span class="line"><span class="comment">#   "cluster_uuid" : "NJHOMNVnTfSn-EBIfIzaVg",</span></span><br><span class="line"><span class="comment">#   "version" : &#123;</span></span><br><span class="line"><span class="comment">#     "number" : "6.5.4",</span></span><br><span class="line"><span class="comment">#     "build_flavor" : "default",</span></span><br><span class="line"><span class="comment">#     "build_type" : "tar"</span></span><br><span class="line"><span class="comment">#     "build_hash" : "d2ef93d",</span></span><br><span class="line"><span class="comment">#     "build_date" : "2018-12-17T21:17:40.758843Z",</span></span><br><span class="line"><span class="comment">#     "build_snapshot" : false,</span></span><br><span class="line"><span class="comment">#     "lucene_version" : "7.5.0",</span></span><br><span class="line"><span class="comment">#     "minimum_wire_compatibility_version" : "5.6.0",</span></span><br><span class="line"><span class="comment">#     "minimum_index_compatibility_version" : "5.0.0"</span></span><br><span class="line"><span class="comment">#   &#125;,</span></span><br><span class="line"><span class="comment">#   "tagline" : "You Know, for Search"</span></span><br><span class="line"><span class="comment"># &#125;</span></span><br></pre></td></tr></table></figure>
+<h2 id="常见问题"><a href="#常见问题" class="headerlink" title="常见问题"></a>常见问题</h2><p>如果容器起不来发现日志报错信息如下:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ERROR: [1] bootstrap checks failed</span><br><span class="line">[1]: max virtual memory areas vm.max_map_count [65530] is too low, increase to at least [262144]</span><br></pre></td></tr></table></figure>
+<p>这代表docker下的宿主机需要设置”vm.max_map_count”参数<br>请在docker宿主机下执行以下命令:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># winpty docker-machine ssh # 如果是Windows git bash下执行, 需要去掉此行注释</span></span><br><span class="line"></span><br><span class="line">sudo /bin/bash -c <span class="string">'cat &gt;&gt; /etc/sysctl.conf &lt;&lt;EOF</span></span><br><span class="line"><span class="string">vm.max_map_count=262144</span></span><br><span class="line"><span class="string">EOF'</span></span><br><span class="line">sudo sysctl -p</span><br></pre></td></tr></table></figure>
+<h2 id="Git项目"><a href="#Git项目" class="headerlink" title="Git项目"></a>Git项目</h2><p><a href="https://github.com/x22x22/deploy-ssl-es-docker" target="_blank" rel="noopener">https://github.com/x22x22/deploy-ssl-es-docker</a></p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p><a href="https://www.elastic.co/guide/en/elasticsearch/reference/6.5/docker.html" target="_blank" rel="noopener">Install Elasticsearch with Dockeredit</a><br><a href="https://www.elastic.co/guide/en/elasticsearch/reference/6.5/configuring-tls-docker.htm" target="_blank" rel="noopener">Encrypting communications in an Elasticsearch Docker Container</a></p>
+
+      
+    </div>
+
+    
+      
+
+
+    
+
+    
+    
+    
+
+    
+
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>x22x22</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://www.fullstackmemo.com/2019/01/14/deploy-ssl-es-docker/" title="通过Docker部署Elasticsearch时开启SSL/TLS加密通讯">http://www.fullstackmemo.com/2019/01/14/deploy-ssl-es-docker/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="external nofollow" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明出处！</li>
+</ul>
+
+      </div>
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/docker/" rel="tag"># docker</a>
+          
+            <a href="/tags/es/" rel="tag"># es</a>
+          
+            <a href="/tags/Elasticsearch/" rel="tag"># Elasticsearch</a>
+          
+            <a href="/tags/加密/" rel="tag"># 加密</a>
+          
+            <a href="/tags/SSL/" rel="tag"># SSL</a>
+          
+            <a href="/tags/TLS/" rel="tag"># TLS</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/01/10/standalone-docker-firewall-set/" rel="next" title="CentOS 7单机Docker容器的Firewall安全设置">
+                <i class="fa fa-chevron-left"></i> CentOS 7单机Docker容器的Firewall安全设置
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/01/21/deploy-zookeeper-clu/" rel="prev" title="部署zookeeper+kafka集群并开启基于DIGEST-MD5的SASL-SSL身份认证">
+                部署zookeeper+kafka集群并开启基于DIGEST-MD5的SASL-SSL身份认证 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+  
+    <div class="comments" id="comments">
+      
+        <div onclick="showGitment()" id="gitment-display-button">显示 Gitment 评论</div>
+        <div id="gitment-container" style="display:none"></div>
+      
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/images/lemon-violet.png" alt="x22x22">
+            
+              <p class="site-author-name" itemprop="name">x22x22</p>
+              <p class="site-description motion-element" itemprop="description">与开发相关的东西乱谈</p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives">
+                
+                    <span class="site-state-item-count">17</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  <a href="/categories/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">6</span>
+                    <span class="site-state-item-name">分类</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">77</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+            <div class="feed-link motion-element">
+              <a href="/atom.xml" rel="alternate">
+                <i class="fa fa-rss"></i>
+                RSS
+              </a>
+            </div>
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  <a href="https://github.com/fullstackmemo" target="_blank" title="GitHub" rel="external nofollow"><i class="fa fa-fw fa-github"></i></a>
+                  
+                </span>
+              
+                <span class="links-of-author-item">
+                  <a href="mailto:fullstackmemo@outlook.com" target="_blank" title="E-Mail" rel="external nofollow"><i class="fa fa-fw fa-envelope"></i></a>
+                  
+                </span>
+              
+                <span class="links-of-author-item">
+                  <a href="https://twitter.com/fullstackmemo" target="_blank" title="Twitter" rel="external nofollow"><i class="fa fa-fw fa-twitter"></i></a>
+                  
+                </span>
+              
+                <span class="links-of-author-item">
+                  <a href="https://www.facebook.com/fullstackmemo" target="_blank" title="FB Page" rel="external nofollow"><i class="fa fa-fw fa-facebook"></i></a>
+                  
+                </span>
+              
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#环境"><span class="nav-number">2.</span> <span class="nav-text">环境</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#涉及的文件"><span class="nav-number">3.</span> <span class="nav-text">涉及的文件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#部署"><span class="nav-number">4.</span> <span class="nav-text">部署</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#测试运行状态"><span class="nav-number">5.</span> <span class="nav-text">测试运行状态</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#常见问题"><span class="nav-number">6.</span> <span class="nav-text">常见问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Git项目"><span class="nav-number">7.</span> <span class="nav-text">Git项目</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考"><span class="nav-number">8.</span> <span class="nav-text">参考</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2018 &mdash; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate"> 
+    <i class="fa fa-x22x22"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">x22x22</span>
+
+  
+
+  
+</div>
+
+
+  
+
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" rel="external nofollow" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" rel="external nofollow" href="https://github.com/theme-next/hexo-theme-next">NexT.Mist</a> v6.1.0</div>
+
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv" title="总访客量">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+    </span>
+  
+
+  
+    <span class="site-pv" title="总访问量">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+
+        
+      </div>
+      <script>
+        window.addEventListener('message', function (e) {
+            if (e.origin !== 'https://runkit.com') return;
+            try {
+                var data = JSON.parse(e.data);
+            } catch (e) {
+                return false;
+            }
+            if (data.context !== 'iframe.resize') {
+                return false;
+            }
+            var iframe = document.querySelector('iframe[src="' + data.src + '"]');
+            if (!iframe) {
+                return false;
+            }
+            if (data.height) {
+                iframe.height = data.height;
+            }
+        });
+      </script>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+      <div id="needsharebutton-float">
+        <span class="btn">
+          <i class="fa fa-share-alt" aria-hidden="true"></i>
+        </span>
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/jquery/2.1.3/jquery.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/velocity/1.2.1/velocity.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/velocity/1.2.1/velocity.ui.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/reading_progress/reading_progress.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=6.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=6.1.0"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=6.1.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=6.1.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=6.1.0"></script>
+
+
+
+  
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+<!-- LOCAL: You can save these files to your site and update links -->
+    
+        
+        <link rel="stylesheet" href="https://jjeejj.github.io/css/gitment.css">
+        <script src="https://jjeejj.github.io/js/gitment.js"></script>
+    
+<!-- END LOCAL -->
+
+    
+
+    
+      <script type="text/javascript">
+      function renderGitment(){
+        var gitment = new Gitment({
+            id: window.location.pathname,
+            owner: 'fullstackmemo',
+            repo: 'gitment-comments',
+            
+            oauth: {
+            
+            
+                client_secret: '119cdc7c9d0cde4de212a4714b032d6b5286e317',
+            
+                client_id: 'e067397a2bce568d4556'
+            }});
+        gitment.render('gitment-container');
+      }
+
+      
+      function showGitment(){
+        document.getElementById("gitment-display-button").style.display = "none";
+        document.getElementById("gitment-container").style.display = "block";
+        renderGitment();
+      }
+      
+      </script>
+    
+
+
+
+
+
+
+  
+
+
+
+
+  
+  
+  
+    
+  
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/instantsearch.js@1/dist/instantsearch.min.css">
+
+  
+  
+    
+  
+  <script src="https://cdn.jsdelivr.net/npm/instantsearch.js@1/dist/instantsearch.js"></script>
+  
+
+  <script src="/js/src/algolia-search.js?v=6.1.0"></script>
+
+
+
+  
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+
+  
+  
+  
+  <script src="/lib/needsharebutton/needsharebutton.js"></script>
+
+  <script>
+    
+    
+      flOptions = {};
+      
+          flOptions.iconStyle = "default";
+      
+          flOptions.boxForm = "vertical";
+      
+          flOptions.position = "middleRight";
+      
+          flOptions.networks = "Weibo,Wechat,Douban,QQZone,Twitter,Facebook";
+      
+      new needShareButton('#needsharebutton-float', flOptions);
+    
+  </script>
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
